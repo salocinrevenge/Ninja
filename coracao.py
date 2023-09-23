@@ -11,13 +11,14 @@ class Coracao():
         pygame.init()
 
         # Definir as dimensões da janela
-        self.WINDOW_WIDTH = 1920*0.7
-        self.WINDOW_HEIGHT = 1080*0.7
+        dimensoes = pygame.display.get_desktop_sizes()[0]
+        self.WINDOW_WIDTH = dimensoes[0] * 0.7
+        self.WINDOW_HEIGHT = dimensoes[1] * 0.7
         self.FPS_PADRAO = 60.0
         self.UPDATE_CAP = 1.0/self.FPS_PADRAO
         self.mapa = Mapa()
         # Criar a janela
-        self.screen = pygame.display.set_mode((self.WINDOW_WIDTH, self.WINDOW_HEIGHT))
+        self.screen = pygame.display.set_mode((self.WINDOW_WIDTH, self.WINDOW_HEIGHT), pygame.RESIZABLE)
         pygame.display.set_caption("Ninja") # titulo da janela
         Thread(self.run())
 

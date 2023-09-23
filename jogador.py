@@ -16,52 +16,119 @@ class Jogador():
     def renderGUI(self, screen):
         match self.elemento:
             case "agua":
-                cor = (0,0,255)
+                corChakra = (0,0,255)
             case "fogo":
-                cor = (255,0,0)
+                corChakra = (255,0,0)
             case "terra":
-                cor = (255,122,0)
+                corChakra = (255,122,0)
             case "vento":
-                cor = (0,255,0)
+                corChakra = (0,255,0)
             case "relampago":
-                cor = (255,255,0)
+                corChakra = (255,255,0)
             case _:
                 if self.modo == 'chakra':
-                    cor = (0,255,255)
+                    corChakra = (0,255,255)
                 else:
-                    cor = (255,255,255)
-        borda = 4
+                    corChakra = (255,255,255)
+        borda = 5
         #recebe as dimensoes da tela
         screen_width, screen_height = screen.get_size()
 
         posRelativa = (0.01,0.4)# 0 a 1 da tela em ambas direcoes
         posRelativa = (posRelativa[0]*screen_width, posRelativa[1]*screen_height)
+
+        if self.modo == 'chakra':
+            cor = (0,255,255)
+        else: cor = (255,255,255)
         # desenha a borda
-        pygame.draw.rect(screen, (255,255,255), (posRelativa[0],posRelativa[1],screen_width*0.2,screen_height*0.55), width=borda, border_radius=10)
-        # desenha a cabeca
+        pygame.draw.rect(screen, cor, (posRelativa[0],posRelativa[1],screen_width*0.2,screen_height*0.55), width=borda, border_radius=10)
 
         # cabeca
+        if self.posChakra["regiao"] == "A" and self.posChakra["subregiao"] == None:
+            cor = (0,255,255)
+        else: cor = (255,255,255)
         pygame.draw.ellipse(screen, cor, (posRelativa[0]*8.5, posRelativa[1]*1.1, screen_width*0.05, screen_height*0.1), width=borda)
         
+        # cerebro
+        if self.posChakra["regiao"] == "A" and self.posChakra["subregiao"] == "A":
+            cor = corChakra
+        elif self.posChakra["regiao"] == "A" and self.posChakra["subregiao"] == None:
+            cor = (0,255,255)
+        else: cor = (255,255,255)
+        pygame.draw.ellipse(screen, cor, (posRelativa[0]*9.42, posRelativa[1]*1.115, screen_width*0.032, screen_height*0.03), width=borda)
+        
+
+        # olhos e ouvidos
+        if self.posChakra["regiao"] == "A" and self.posChakra["subregiao"] == "S":
+            cor = corChakra
+        elif self.posChakra["regiao"] == "A" and self.posChakra["subregiao"] == None:
+            cor = (0,255,255)
+        else: cor = (255,255,255)
+        pygame.draw.ellipse(screen, cor, (posRelativa[0]*8.5, posRelativa[1]*1.18, screen_width*0.05, screen_height*0.03), width=borda)
+        
+        # boca e nariz
+        if self.posChakra["regiao"] == "A" and self.posChakra["subregiao"] == "D":
+            cor = corChakra
+        elif self.posChakra["regiao"] == "A" and self.posChakra["subregiao"] == None:
+            cor = (0,255,255)
+        else: cor = (255,255,255)
+        pygame.draw.ellipse(screen, cor, (posRelativa[0]*9.42, posRelativa[1]*1.26, screen_width*0.032, screen_height*0.03), width=borda)
+        
+
+        
         # torax
+        if self.posChakra["regiao"] == "S" and self.posChakra["subregiao"] == "A":
+            cor = corChakra
+        elif self.posChakra["regiao"] == "S" and self.posChakra["subregiao"] == None:
+            cor = (0,255,255)
+        else: cor = (255,255,255)
         pygame.draw.ellipse(screen, cor, (posRelativa[0]*7.6, posRelativa[1]*1.38, screen_width*0.07, screen_height*0.1), width=borda)
+        
         # braços
+        if self.posChakra["regiao"] == "S" and self.posChakra["subregiao"] == "S":
+            cor = corChakra
+        elif self.posChakra["regiao"] == "S" and self.posChakra["subregiao"] == None:
+            cor = (0,255,255)
+        else: cor = (255,255,255)
         pygame.draw.ellipse(screen, cor, (posRelativa[0]*4.5, posRelativa[1]*1.41, screen_width*0.02, screen_height*0.17), width=borda)
         pygame.draw.ellipse(screen, cor, (posRelativa[0]*15.5, posRelativa[1]*1.41, screen_width*0.02, screen_height*0.17), width=borda)
+        
         # maos
+        if self.posChakra["regiao"] == "S" and self.posChakra["subregiao"] == "D":
+            cor = corChakra
+        elif self.posChakra["regiao"] == "S" and self.posChakra["subregiao"] == None:
+            cor = (0,255,255)
+        else: cor = (255,255,255)
         pygame.draw.ellipse(screen, cor, (posRelativa[0]*4.6, posRelativa[1]*1.85, screen_width*0.017, screen_height*0.027), width=borda)
         pygame.draw.ellipse(screen, cor, (posRelativa[0]*15.8, posRelativa[1]*1.85, screen_width*0.017, screen_height*0.027), width=borda)
         
+
         # abdomen
+        if self.posChakra["regiao"] == "D" and self.posChakra["subregiao"] == "A":
+            cor = corChakra
+        elif self.posChakra["regiao"] == "D" and self.posChakra["subregiao"] == None:
+            cor = (0,255,255)
+        else: cor = (255,255,255)
         pygame.draw.ellipse(screen, cor, (posRelativa[0]*7.9, posRelativa[1]*1.66, screen_width*0.065, screen_height*0.05), width=borda)
+        
         # pernas
+        if self.posChakra["regiao"] == "D" and self.posChakra["subregiao"] == "S":
+            cor = corChakra
+        elif self.posChakra["regiao"] == "D" and self.posChakra["subregiao"] == None:
+            cor = (0,255,255)
+        else: cor = (255,255,255)
         pygame.draw.ellipse(screen, cor, (posRelativa[0]*7.6, posRelativa[1]*1.8, screen_width*0.02, screen_height*0.17), width=borda)
         pygame.draw.ellipse(screen, cor, (posRelativa[0]*12.6, posRelativa[1]*1.8, screen_width*0.02, screen_height*0.17), width=borda)
+        
         # pes
+        if self.posChakra["regiao"] == "D" and self.posChakra["subregiao"] == "D":
+            cor = corChakra
+        elif self.posChakra["regiao"] == "D" and self.posChakra["subregiao"] == None:
+            cor = (0,255,255)
+        else: cor = (255,255,255)
         pygame.draw.ellipse(screen, cor, (posRelativa[0]*5.3, posRelativa[1]*2.2, screen_width*0.035, screen_height*0.03), width=borda)
         pygame.draw.ellipse(screen, cor, (posRelativa[0]*13.5, posRelativa[1]*2.2, screen_width*0.035, screen_height*0.03), width=borda)
-        
-        pass
+
 
     def render(self, screen):
         self.renderGUI(screen)
@@ -70,9 +137,9 @@ class Jogador():
     def escolheElemento(self):
         
         rapido = [self.posChakra["tempo1"]<self.treshold[0], self.posChakra["tempo2"]<self.treshold[1], self.posChakra["tempo3"]<self.treshold[2]]
+        
         if rapido == [True, True, True]:
             self.elemento = "relampago"
-
         elif rapido == [True, True, False]:
             self.elemento = "fogo"
         elif rapido == [False, True, True] or rapido == [True, False, True]:
@@ -120,6 +187,7 @@ class Jogador():
                         self.posChakra["tempo1"] = self.tempoChakra - tempoAntes
                     else:
                         self.posChakra["tempo3"] = self.tempoChakra - tempoAntes
-                        self.escolheElemento()
+                        if self.elemento == None:
+                            self.escolheElemento()
 
  
