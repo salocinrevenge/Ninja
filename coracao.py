@@ -62,7 +62,7 @@ class Coracao():
 
                 # Depois de processar o tempo, renderiza
                 if render:
-                    self.render(self)
+                    self.render()
                     frames += 1
                 else:
                     time.sleep(0.001)
@@ -73,13 +73,19 @@ class Coracao():
         self.input()
         self.mapa.tick()
 
-    def render(self, gc): # metodo chamado a cada frame
+    def render(self): # metodo chamado a cada frame
         # Limpar a telaa
         self.screen.fill((0,0,0))
 
         # Renderizar o mapa
         self.mapa.render(self.screen)
 
+        # Desenhar o texto
+        font = pygame.font.SysFont("Arial", 16)
+        x, y = pygame.mouse.get_pos()
+        text = f"x: {x-800}, y: {y-200}"
+        text = font.render(text, True, (255, 255, 255))
+        self.screen.blit(text, (0, 0))
         # Atualizar a tela
         pygame.display.update()
 

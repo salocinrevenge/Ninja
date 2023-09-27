@@ -130,8 +130,19 @@ class Jogador():
         pygame.draw.ellipse(screen, cor, (posRelativa[0]*13.5, posRelativa[1]*2.2, screen_width*0.035, screen_height*0.03), width=borda)
 
 
+    def renderBody(self, screen):
+        # renderiza a cabeca
+        posInicial = (800,200)
+        pygame.draw.ellipse(screen, (255,0,0), (posInicial[0]+0,posInicial[1]+0,90,100) )
+
+        vertices  = [(37,120), (37,110), (52,110), (52,120), (83,124), (100,131)]
+        for i in range(len(vertices)):
+            vertices[i]= (vertices[i][0]+posInicial[0], vertices[i][1]+posInicial[1])
+        pygame.draw.polygon(screen, (255,0,0), vertices)
+
     def render(self, screen):
         self.renderGUI(screen)
+        self.renderBody(screen)
         pass
 
     def escolheElemento(self):
