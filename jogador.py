@@ -8,10 +8,27 @@ class Jogador():
         self.posChakra = {"regiao": None,"tempo1": 0, "tempo2": 0, "subregiao": None, "tempo3": 0}
         self.modo = 'mobilidade'
         self.treshold = [0.11, 0.12, 0.11]
-        vezesUsado = {"agua": 0, "fogo": 0, "terra": 0, "vento": 0, "relampago": 0, "chakra": 0}
+        self.vezesUsado = {"agua": 0, "fogo": 0, "terra": 0, "vento": 0, "relampago": 0, "chakra": 0}
+        self.pos = [0,0] # x, y
+        self.vel = [0,0] # velx, vely
+        self.velPadrao = 5
+        self.pressionados = {'A':0, 'S':0, 'D':0, 'W':0, 'a':0, 's':0, 'd':0, 'w':0}
 
     def tick(self):
-        pass
+        self.pos[0] += self.vel[0]
+        self.pos[1] += self.vel[1]
+        self.vel[0] = 0
+        self.vel[1] = 0
+
+        if self.pressionados['A'] == 1:
+            self.vel[0] -= self.velPadrao
+        if self.pressionados['D'] == 1:
+            self.vel[0] += self.velPadrao
+        if self.pressionados['W'] == 1:
+            self.vel[1] -= self.velPadrao
+        if self.pressionados['S'] == 1:
+            self.vel[1] += self.velPadrao
+    
 
     def renderGUI(self, screen):
         match self.elemento:
@@ -129,9 +146,14 @@ class Jogador():
         pygame.draw.ellipse(screen, cor, (posRelativa[0]*5.3, posRelativa[1]*2.2, screen_width*0.035, screen_height*0.03), width=borda)
         pygame.draw.ellipse(screen, cor, (posRelativa[0]*13.5, posRelativa[1]*2.2, screen_width*0.035, screen_height*0.03), width=borda)
 
+    def renderPersonagem(self, screen):
+        screen_width, screen_height = screen.get_size()
+        pygame.draw.ellipse(screen, (255,255,255), (self.pos[0],self.pos[1], screen_width*0.1, screen_height*0.2), width=5)
+
 
     def render(self, screen):
         self.renderGUI(screen)
+        self.renderPersonagem(screen)
         pass
 
     def escolheElemento(self):
@@ -162,7 +184,17 @@ class Jogador():
             self.elemento = None
             
 
-    def input(self, tecla):
+    def input(self, tecla: str):
+
+        # se tecla é minusculo
+        if tecla.isupper():
+            self.pressionados[tecla] = 1
+            self.pressionados[tecla.lower()] = 0
+
+        if tecla.islower():
+            self.pressionados[tecla] = 1
+            self.pressionados[tecla.upper()] = 0
+
 
         match (tecla):
 
@@ -170,7 +202,7 @@ class Jogador():
                 self.toggleChakra()
 
             case 'A' | 'S' | 'D':
-                if self.modo == 'chakra':
+                if self.modo == 'chakra' and self.elemento == None:
                     tempoAntes = self.tempoChakra
                     self.tempoChakra = time.time()
                     if self.posChakra["regiao"] == None:
@@ -180,7 +212,7 @@ class Jogador():
                         self.posChakra["tempo2"] = self.tempoChakra - tempoAntes
 
             case 'a' | 's' | 'd':
-                if self.modo == 'chakra':
+                if self.modo == 'chakra' and self.elemento == None:
                     tempoAntes = self.tempoChakra
                     self.tempoChakra = time.time()
                     if self.posChakra["subregiao"] == None:
