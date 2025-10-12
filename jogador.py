@@ -8,14 +8,14 @@ class Jogador():
         self.game = game
         self.pos = Vector3(0, 1, 0)
         self.dims = Vector3(1, 2, 1)
-        self.walk_speed = 0.2
+        self.walk_speed = 0.1
         self.vel = Vector3(0, 0, 0)
         self.on_ground = True
         self.lives = 5
         self.time_invulnerable = 0
         self.forward = Vector3(1,0,0)
         self.right = Vector3(0,0,1)
-        self.forca_pulo = 0.35
+        self.forca_pulo = 0.5
         self.time_invunerability = 100
         self.lives = 5
 
@@ -43,8 +43,8 @@ class Jogador():
             move.x /= length
             move.z /= length
 
-        self.pos.x += move.x * self.walk_speed
-        self.pos.z += move.z * self.walk_speed
+        self.vel.x += move.x * self.walk_speed
+        self.vel.z += move.z * self.walk_speed
 
         # --- Pulo ---
         if rl.is_key_pressed(rl.KEY_SPACE) and self.on_ground:
@@ -53,11 +53,13 @@ class Jogador():
 
         
         self.vel = rl.vector3_subtract(self.vel, Vector3(0, self.game.gravity, 0))
+        print(self.vel.x, self.vel.y, self.vel.z) 
         self.pos = rl.vector3_add(self.pos, self.vel)
         if self.pos.y <= 1:
             self.pos.y = 1
-            self.vel = Vector3(0, 0, 0)
             self.on_ground = True
+            self.vel = rl.vector3_multiply(self.vel, Vector3(1, 0, 1))
+        self.vel = rl.vector3_multiply(self.vel, Vector3(self.game.air_resistance, 1, self.game.air_resistance))
 
     def render(self):
         if (self.time_invulnerable//10) % 2 ==0:

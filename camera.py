@@ -44,11 +44,14 @@ class Camera():
         else:
             self.camera.position = rl.Vector3(self.player.pos.x, self.player.pos.y + 1.5, self.player.pos.z)
 
+
         self.camera.target = rl.Vector3(
             self.player.pos.x + dir_x,
             self.player.pos.y + 1.5 + dir_y,
             self.player.pos.z + dir_z
         )
+
+        # self.camera.position = rl.Vector3(0, 10, 0) # debug camera no teto
 
 
 

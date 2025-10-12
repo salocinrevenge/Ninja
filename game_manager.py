@@ -47,9 +47,9 @@ class Game_Manager():
     def update(self, dt):
         for block in self.static_blocks:
             block.update(dt)
-        self.camera.update(dt)
         for entity in self.entities:
             entity.update(dt)
+        self.camera.update(dt)
         new_projectiles = []
         for proj in self.projectiles:
             proj.update(dt)
@@ -62,11 +62,13 @@ class Game_Manager():
         self.entities = []
         self.projectiles = []
 
-        self.gravity = 0.02
+        self.gravity = 0.03
+        self.air_resistance = 0.5
 
         # --- Inimigos ---
         self.enemies = []
-        for _ in range(3):
+        self.n_enemies = 0 # 3
+        for _ in range(self.n_enemies):
             enemy = Enemy(game = self,
                           pos = Vector3(random.uniform(-10, 10), 1, random.uniform(-10, 10)),
                           dir = random.uniform(0, math.tau),
