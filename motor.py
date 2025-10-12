@@ -1,7 +1,7 @@
 import time
 from game_manager import Game_Manager
 import pyray as rl
-
+import asyncio
 
 class Motor():
 
@@ -16,7 +16,6 @@ class Motor():
         rl.disable_cursor()
 
         self.game = Game_Manager(self)
-        self.run()
 
     async def run(self):
         self.running = True
@@ -30,37 +29,39 @@ class Motor():
         self.fps = 0
 
         while self.running and not rl.window_should_close():
-                render = False
-                firstTime = time.time()
-                passedTime = firstTime - lastTime   # tempo que passou desde a ultima vez que o loop foi executado
-                lastTime = firstTime            # atualiza o tempo da ultima vez que o loop foi executado
+            render = False
+            firstTime = time.time()
+            passedTime = firstTime - lastTime   # tempo que passou desde a ultima vez que o loop foi executado
+            lastTime = firstTime            # atualiza o tempo da ultima vez que o loop foi executado
 
-                unprocessedTime += passedTime  # tempo nao processado
-                frameTime += passedTime
+            unprocessedTime += passedTime  # tempo nao processado
+            frameTime += passedTime
 
-                # enquanto nao processou td q deveria (devido a lag em render ou coisas assim)
-                while unprocessedTime >= self.UPDATE_CAP:
-                    # Isso garante que o tempo de atualizacao seja constante
-                    # e nao dependa do tempo de renderizacao. Igualando o 
-                    # jogo para todos os computadores, apenas aumentando o
-                    # fps para computadores mais potentes
-                    unprocessedTime -= self.UPDATE_CAP  # Tempo comido
-                    render = True
+            # enquanto nao processou td q deveria (devido a lag em render ou coisas assim)
+            while unprocessedTime >= self.UPDATE_CAP:
+                # Isso garante que o tempo de atualizacao seja constante
+                # e nao dependa do tempo de renderizacao. Igualando o 
+                # jogo para todos os computadores, apenas aumentando o
+                # fps para computadores mais potentes
+                unprocessedTime -= self.UPDATE_CAP  # Tempo comido
+                render = True
 
-                    self.update(self.UPDATE_CAP)
+                self.update(self.UPDATE_CAP)
 
-                    if frameTime >= 1.0:
-                            frameTime = 0
-                            self.fps = frames
-                            frames = 0
-                            # print("FPS: " + str(fps))
+                if frameTime >= 1.0:
+                        frameTime = 0
+                        self.fps = frames
+                        frames = 0
+                        # print("FPS: " + str(fps))
 
-                # Depois de processar o tempo, renderiza
-                if render:
-                    self.render(self)
-                    frames += 1
-                else:
-                    time.sleep(0.001)
+            # Depois de processar o tempo, renderiza
+            if render:
+                self.render()
+                frames += 1
+            # else:
+            #     time.sleep(0.001)
+                
+            await asyncio.sleep(0)
                 
         self.dispose()
       
@@ -71,6 +72,8 @@ class Motor():
 
         # Renderizar o mapa
         self.game.render()
+        # mostra o FPS no canto superior direito
+        rl.draw_text(f"FPS: {self.fps}", rl.get_screen_width() - 100, 10, 20, rl.RED)
 
 
     def dispose(self):      # metodo chamado quando o jogo fecha

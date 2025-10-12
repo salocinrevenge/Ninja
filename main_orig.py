@@ -205,7 +205,6 @@ async def main():
         rl.begin_mode_3d(camera)
         draw_grid(20, 1.0)
 
-        # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Parei aqui
 
         # Piscar quando invulnerável
         blink = (now * 10) % 2 < 1

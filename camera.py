@@ -21,16 +21,16 @@ class Camera():
         
         # --- Movimento da câmera ---
         mouse_delta = rl.get_mouse_delta()
-        camera_yaw -= mouse_delta.x * 0.003
-        camera_pitch -= mouse_delta.y * 0.003
-        camera_pitch = max(-1.2, min(1.2, camera_pitch))
+        self.camera_yaw -= mouse_delta.x * 0.003
+        self.camera_pitch -= mouse_delta.y * 0.003
+        self.camera_pitch = max(-1.2, min(1.2, self.camera_pitch))
 
-        dir_x = math.sin(camera_yaw) * math.cos(camera_pitch)
-        dir_y = math.sin(camera_pitch)
-        dir_z = math.cos(camera_yaw) * math.cos(camera_pitch)
+        dir_x = math.sin(self.camera_yaw) * math.cos(self.camera_pitch)
+        dir_y = math.sin(self.camera_pitch)
+        dir_z = math.cos(self.camera_yaw) * math.cos(self.camera_pitch)
 
         self.player.forward = rl.Vector3(dir_x, dir_y, dir_z)
-        self.player.right = rl.Vector3(math.cos(camera_yaw), 0, -math.sin(camera_yaw))
+        self.player.right = rl.Vector3(math.cos(self.camera_yaw), 0, -math.sin(self.camera_yaw))
 
         if self.third_person:
             cam_offset = rl.Vector3(-dir_x * self.camera_distance,

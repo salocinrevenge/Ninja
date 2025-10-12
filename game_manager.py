@@ -9,17 +9,26 @@ import pyray as rl
 class Game_Manager():
     def __init__(self, motor):
         self.motor = motor
-        self.create_map()
         self.jogador = Jogador(self)
+        self.create_map()
         self.camera = Camera(self, self.jogador)
-        self.entidades.append(self.jogador)
+        self.entities.append(self.jogador)
     
+    def draw_grid(self, size=20, spacing=1.0):
+        for i in range(-size, size + 1):
+            rl.draw_line_3d(Vector3(i * spacing, 0, -size * spacing),
+                            Vector3(i * spacing, 0, size * spacing),
+                            rl.GRAY)
+            rl.draw_line_3d(Vector3(-size * spacing, 0, i * spacing),
+                            Vector3(size * spacing, 0, i * spacing),
+                            rl.GRAY)
+
     def render(self):
 
         rl.begin_drawing()
         rl.clear_background(rl.RAYWHITE)
 
-        rl.begin_mode_3d(self.camera)
+        rl.begin_mode_3d(self.camera.camera)
         self.draw_grid(20, 1.0)
 
         for block in self.static_blocks:
@@ -31,9 +40,14 @@ class Game_Manager():
 
         rl.end_mode_3d()
 
+        self.jogador.render_hud()
+
+        rl.end_drawing()
+
     def update(self, dt):
         for block in self.static_blocks:
             block.update(dt)
+        self.camera.update(dt)
         for entity in self.entities:
             entity.update(dt)
         new_projectiles = []
@@ -48,7 +62,7 @@ class Game_Manager():
         self.entities = []
         self.projectiles = []
 
-        self.gravity = 0.2
+        self.gravity = 0.02
 
         # --- Inimigos ---
         self.enemies = []
@@ -57,9 +71,14 @@ class Game_Manager():
                           pos = Vector3(random.uniform(-10, 10), 1, random.uniform(-10, 10)),
                           dir = random.uniform(0, math.tau),
                           speed = 0.05,
-                          cooldown= random.uniform(0, 5)
+                          cooldown= random.uniform(2, 5),
+                          player = self.jogador,
                           )
             self.enemies.append(enemy)
             self.entities.append(enemy)
+
+    def add_projectile(self, projectile):
+        self.projectiles.append(projectile)
+
 
 

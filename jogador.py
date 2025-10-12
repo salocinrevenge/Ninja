@@ -47,19 +47,21 @@ class Jogador():
         self.pos.z += move.z * self.walk_speed
 
         # --- Pulo ---
-        if rl.is_key_pressed(rl.KEY_SPACE) and on_ground:
-            self.vel += Vector3(0, self.forca_pulo, 0)
-            on_ground = False
+        if rl.is_key_pressed(rl.KEY_SPACE) and self.on_ground:
+            self.vel = rl.vector3_add(self.vel, Vector3(0, self.forca_pulo, 0)) 
+            self.on_ground = False
 
-        self.vel -= Vector3(0, self.self.game.gravity, 0)
-        self.pos.y += self.vel
-        if self.pos.y <= 0:
-            self.pos.y = 0
+        
+        self.vel = rl.vector3_subtract(self.vel, Vector3(0, self.game.gravity, 0))
+        self.pos = rl.vector3_add(self.pos, self.vel)
+        if self.pos.y <= 1:
+            self.pos.y = 1
             self.vel = Vector3(0, 0, 0)
-            on_ground = True
+            self.on_ground = True
 
     def render(self):
-        pass
+        if (self.time_invulnerable//10) % 2 ==0:
+             rl.draw_cube(self.pos, self.dims.x, self.dims.y, self.dims.z, rl.BLUE)
 
     def hurt(self):
         if self.time_invulnerable > 0:
@@ -67,3 +69,14 @@ class Jogador():
         self.time_invulnerable = self.time_invunerability
         self.lives-=1
             
+    def render_hud(self):
+        for i in range(self.lives):
+            x = 20 + i * 35
+            y = 20
+            rl.draw_rectangle(x, y, 30, 30, rl.RED)
+
+        # invulnerabilidade
+        if self.time_invulnerable>0:
+            rl.draw_text("INVULNERÁVEL", 20, 60, 25, rl.GOLD)
+
+        rl.draw_text("F5 alterna visão", 10, 100, 20, rl.GRAY)

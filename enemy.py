@@ -3,6 +3,7 @@ from bullet import Bullet
 from utils import check_collision
 import math
 import random
+import pyray as rl
 
 class Enemy():
 
@@ -13,6 +14,7 @@ class Enemy():
         self.speed = speed
         self.cooldown = cooldown
         self.player = player
+        self.dims = Vector3(1, 2, 1)
         self.counter = 0
 
     def update(self,dt):
@@ -20,9 +22,9 @@ class Enemy():
         self.pos.z += math.sin(self.dir) * self.speed
         if abs(self.pos.x) > 19 or abs(self.pos.z) > 19:
             self.dir += math.pi / 2
-        self.counter += 1
+        self.counter += dt
         if self.counter >= self.cooldown:
-            self.counter = random.uniform(0, 3)
+            self.counter = random.uniform(0, 1)
             dir_to_player = Vector3(
                 self.player.pos.x - self.pos.x,
                 0,
@@ -32,7 +34,8 @@ class Enemy():
             if d != 0:
                 dir_to_player.x /= d
                 dir_to_player.z /= d
-            self.game.add_projectile(Bullet(Vector3(self.pos.x, 1.5, self.pos.z), Vector3(dir_to_player.x * 0.3, 0, dir_to_player.z * 0.3), 5))
+            self.game.add_projectile(Bullet(Vector3(self.pos.x, 1.5, self.pos.z), Vector3(dir_to_player.x * 0.3, 0, dir_to_player.z * 0.3), self.player, 5))
+
 
 
 
@@ -41,4 +44,4 @@ class Enemy():
             self.player.hurt()
 
     def render(self):
-        pass
+        rl.draw_cube(self.pos, 1, 2, 1, rl.RED)
