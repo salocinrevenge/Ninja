@@ -18,8 +18,13 @@ class Jogador():
         self.forca_pulo = 0.5
         self.time_invunerability = 100
         self.lives = 5
+        self.f3_active = False
+        self.yaw = 0
 
     def update(self,dt):
+        if rl.is_key_pressed(rl.KEY_F3):
+            self.f3_active = not self.f3_active
+
         if self.time_invulnerable > 0:
             self.time_invulnerable -= 1
 
@@ -53,7 +58,7 @@ class Jogador():
 
         
         self.vel = rl.vector3_subtract(self.vel, Vector3(0, self.game.gravity, 0))
-        print(self.vel.x, self.vel.y, self.vel.z) 
+        
         self.pos = rl.vector3_add(self.pos, self.vel)
         if self.pos.y <= 1:
             self.pos.y = 1
@@ -63,7 +68,8 @@ class Jogador():
 
     def render(self):
         if (self.time_invulnerable//10) % 2 ==0:
-             rl.draw_cube(self.pos, self.dims.x, self.dims.y, self.dims.z, rl.BLUE)
+            rl.draw_cube_v(self.pos, self.dims, rl.BLUE)
+            
 
     def hurt(self):
         if self.time_invulnerable > 0:
@@ -82,3 +88,8 @@ class Jogador():
             rl.draw_text("INVULNERÁVEL", 20, 60, 25, rl.GOLD)
 
         rl.draw_text("F5 alterna visão", 10, 100, 20, rl.GRAY)
+
+        if self.f3_active:
+            text = f"Position:\nX: {self.pos.x}\nY: {self.pos.y}\nZ: {self.pos.z} \
+                \nLooking at:\nX: {self.game.camera.camera.target.x}\nY: {self.game.camera.camera.target.y}\nZ: {self.game.camera.camera.target.z}\n"
+            rl.draw_text(text, 10, 140, 20, (50,50,50,255))

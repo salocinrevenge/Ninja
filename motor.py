@@ -38,6 +38,7 @@ class Motor():
             frameTime += passedTime
 
             # enquanto nao processou td q deveria (devido a lag em render ou coisas assim)
+            i = 0
             while unprocessedTime >= self.UPDATE_CAP:
                 # Isso garante que o tempo de atualizacao seja constante
                 # e nao dependa do tempo de renderizacao. Igualando o 
@@ -53,6 +54,9 @@ class Motor():
                         self.fps = frames
                         frames = 0
                         # print("FPS: " + str(fps))
+                i +=1
+                if i >1: # apenas 2 repeticoes no maximo
+                     break
 
             # Depois de processar o tempo, renderiza
             if render:

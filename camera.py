@@ -21,6 +21,10 @@ class Camera():
         
         # --- Movimento da câmera ---
         mouse_delta = rl.get_mouse_delta()
+        if mouse_delta.x> 100:
+            print(f"{mouse_delta.x=}") 
+        if mouse_delta.y> 100:
+            print(f"{mouse_delta.y=}") 
         self.camera_yaw -= mouse_delta.x * 0.003
         self.camera_pitch -= mouse_delta.y * 0.003
         self.camera_pitch = max(-1.2, min(1.2, self.camera_pitch))
@@ -31,6 +35,7 @@ class Camera():
 
         self.player.forward = rl.Vector3(dir_x, dir_y, dir_z)
         self.player.right = rl.Vector3(math.cos(self.camera_yaw), 0, -math.sin(self.camera_yaw))
+        self.player.yaw = self.camera_yaw
 
         if self.third_person:
             cam_offset = rl.Vector3(-dir_x * self.camera_distance,

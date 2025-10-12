@@ -67,7 +67,8 @@ class Game_Manager():
 
         # --- Inimigos ---
         self.enemies = []
-        self.n_enemies = 0 # 3
+        self.n_enemies = 3
+        self.n_enemies = 0 
         for _ in range(self.n_enemies):
             enemy = Enemy(game = self,
                           pos = Vector3(random.uniform(-10, 10), 1, random.uniform(-10, 10)),
