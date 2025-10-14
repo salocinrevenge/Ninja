@@ -68,8 +68,8 @@ class Game_Manager():
         self.gravity = 0.03
         self.air_resistance = 0.5
 
-        for i in range(-20,20):
-            for j in range(-20,20):
+        for i in range(-50,50):
+            for j in range(-50,50):
                 self.static_blocks.append(Block(self, self.assets_loader, "cube.glb", Vector3(i+0.5,0.5,j+0.5)))
 
         # --- Inimigos ---
