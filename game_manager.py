@@ -2,6 +2,8 @@ from jogador import Jogador
 from enemy import Enemy
 from pyray import Vector3
 from camera import Camera
+from block import Block
+from assets_loader import Assets_Loader
 import random
 import math
 import pyray as rl
@@ -9,6 +11,7 @@ import pyray as rl
 class Game_Manager():
     def __init__(self, motor):
         self.motor = motor
+        self.assets_loader = Assets_Loader(self)
         self.jogador = Jogador(self)
         self.create_map()
         self.camera = Camera(self, self.jogador)
@@ -65,6 +68,10 @@ class Game_Manager():
         self.gravity = 0.03
         self.air_resistance = 0.5
 
+        for i in range(-20,20):
+            for j in range(-20,20):
+                self.static_blocks.append(Block(self, self.assets_loader, "cube.glb", Vector3(i+0.5,0.5,j+0.5)))
+
         # --- Inimigos ---
         self.enemies = []
         self.n_enemies = 3
@@ -82,6 +89,9 @@ class Game_Manager():
 
     def add_projectile(self, projectile):
         self.projectiles.append(projectile)
+
+    def dispose(self):
+        self.assets_loader.clear_all()
 
 
 

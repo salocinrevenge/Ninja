@@ -81,4 +81,4 @@ class Motor():
 
 
     def dispose(self):      # metodo chamado quando o jogo fecha
-            pass
+        self.game.dispose()
