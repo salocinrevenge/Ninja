@@ -14,10 +14,12 @@ class Block():
 
         # Modelo criado por textura
         texture = assets_loader.get_texture("grass.png") # arquivo 48x64 no mesmo diretório
-        texture2 = assets_loader.get_texture("dirt.png") # arquivo 48x64 no mesmo diretório
+        # mesh = rl.gen_mesh_cube(1.0, 1.0, 1.0) # cubo 1x1x1
+        # self.model = rl.load_model_from_mesh(mesh)
+        # self.model.materials[0].maps[rl.MATERIAL_MAP_DIFFUSE].texture = texture
 
         # Cada face: frente, trás, esquerda, direita, topo, base
-        self.active_faces = [False, False, False, False, False, False]
+        self.active_faces = [False, False, False, False, True, False]
 
         mesh = assets_loader.get_mesh(self.active_faces)
         self.model = rl.load_model_from_mesh(mesh)
