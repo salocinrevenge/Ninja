@@ -19,6 +19,21 @@ class Assets_Loader():
             return self.textures_loaded[name]
         self.textures_loaded[name] = rl.load_texture_from_image(rl.load_image(name.encode('utf-8')))
         return self.textures_loaded[name]
+    
+    def get_model_cube(self, active_faces, name):
+        # active faces is a list of 6 booleans, transforme in a iteger
+        key = 0
+        for i in range(6):
+            if active_faces[i]:
+                key |= (1 << i)
+        key_name = f"{name}_{key}"
+        if key_name in self.models_loaded.keys():
+            return self.models_loaded[key_name]
+        mesh = self.get_mesh(active_faces)
+        model = rl.load_model_from_mesh(mesh)
+        model.materials[0].maps[rl.MATERIAL_MAP_DIFFUSE].texture = self.get_texture(name)
+        self.models_loaded[key_name] = model
+        return self.models_loaded[key_name]
 
     def get_mesh(self, active_faces):
         # active faces is a list of 6 booleans, transforme in a iteger
@@ -28,7 +43,7 @@ class Assets_Loader():
                 key |= (1 << i)
         if key in self.meshes_loaded.keys():
             return self.meshes_loaded[key]
-        self.meshes_loaded[key] = self.make_cube_mesh(active_faces)
+        self.meshes_loaded[key] = self.make_cube_mesh(active_faces).mesh
         return self.meshes_loaded[key]
         
     def make_cube_mesh(self, active_faces):
@@ -41,17 +56,17 @@ class Assets_Loader():
         # Ordem das faces: frente, trás, direita, esquerda, topo, base
         face_positions = [
             # Frente
-            [(-0.5, -0.5,  0.5), (0.5, -0.5,  0.5), (0.5, 0.5,  0.5), (-0.5, 0.5,  0.5)],
+            [(0, 0, 1), (1, 0, 1), (1, 1, 1), (0, 1, 1)],
             # Trás
-            [(0.5, -0.5, -0.5), (-0.5, -0.5, -0.5), (-0.5, 0.5, -0.5), (0.5, 0.5, -0.5)],
+            [(1, 0, 0), (0, 0, 0), (0, 1, 0), (1, 1, 0)],
             # Direita
-            [(0.5, -0.5, 0.5), (0.5, -0.5, -0.5), (0.5, 0.5, -0.5), (0.5, 0.5, 0.5)],
+            [(1, 0, 1), (1, 0, 0), (1, 1, 0), (1, 1, 1)],
             # Esquerda
-            [(-0.5, -0.5, -0.5), (-0.5, -0.5, 0.5), (-0.5, 0.5, 0.5), (-0.5, 0.5, -0.5)],
+            [(0, 0, 0), (0, 0, 1), (0, 1, 1), (0, 1, 0)],
             # Topo
-            [(-0.5, 0.5, 0.5), (0.5, 0.5, 0.5), (0.5, 0.5, -0.5), (-0.5, 0.5, -0.5)],
+            [(0, 1, 1), (1, 1, 1), (1, 1, 0), (0, 1, 0)],
             # Base
-            [(-0.5, -0.5, -0.5), (0.5, -0.5, -0.5), (0.5, -0.5, 0.5), (-0.5, -0.5, 0.5)]
+            [(0, 0, 0), (1, 0, 0), (1, 0, 1), (0, 0, 1)]
         ]
         
         # UV padrão para a face inteira
@@ -76,22 +91,45 @@ class Assets_Loader():
         mesh = rl.Mesh()
         mesh.vertexCount = len(vertices) // 3
         mesh.triangleCount = len(indices) // 3
-        mesh.vertices = rl.ffi.new("float[]", vertices)
-        mesh.texcoords = rl.ffi.new("float[]", texcoords)
-        mesh.indices = rl.ffi.new("unsigned short[]", indices)
 
-        rl.upload_mesh(mesh, False)
-        return mesh
+        # --- Alocação dos buffers
+        vertices_buf = rl.ffi.new("float[]", vertices)
+        texcoords_buf = rl.ffi.new("float[]", texcoords)
+        indices_buf = rl.ffi.new("unsigned short[]", indices)
+
+        mesh.vertices = vertices_buf
+        mesh.texcoords = texcoords_buf
+        mesh.indices = indices_buf
+
+        rl.upload_mesh(mesh, True)
+
+        return MeshWrapper(mesh, vertices_buf, texcoords_buf, indices_buf)
 
 
     def clear_all(self):
+
+        print("Clearing all loaded assets...")
+        print(len(self.models_loaded), "models,",
+              len(self.textures_loaded), "textures,",
+              len(self.meshes_loaded), "meshes.")
         for key in self.models_loaded.keys():
             rl.unload_model(self.models_loaded[key])
             self.models_loaded[key] = None
         for key in self.textures_loaded.keys():
             rl.unload_texture(self.textures_loaded[key])
             self.textures_loaded[key] = None
+        for key in self.meshes_loaded.keys():
+            rl.unload_mesh(self.meshes_loaded[key])
+            self.meshes_loaded[key] = None
 
         self.models_loaded = None
         self.textures_loaded = None
+        self.meshes_loaded = None
 
+
+class MeshWrapper:
+    def __init__(self, mesh, vertices_buf, texcoords_buf, indices_buf):
+        self.mesh = mesh
+        self.vertices_buf = vertices_buf
+        self.texcoords_buf = texcoords_buf
+        self.indices_buf = indices_buf

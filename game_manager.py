@@ -3,6 +3,7 @@ from enemy import Enemy
 from pyray import Vector3
 from camera import Camera
 from block import Block
+from game_chunk import Game_Chunk
 from assets_loader import Assets_Loader
 import random
 import math
@@ -34,8 +35,8 @@ class Game_Manager():
         rl.begin_mode_3d(self.camera.camera)
         self.draw_grid(20, 1.0)
 
-        for block in self.static_blocks:
-            block.render()
+        for lc in self.loaded_chunks:
+            lc.render()
         for entity in self.entities:
             entity.render()
         for proj in self.projectiles:
@@ -48,8 +49,8 @@ class Game_Manager():
         rl.end_drawing()
 
     def update(self, dt):
-        for block in self.static_blocks:
-            block.update(dt)
+        for lc in self.loaded_chunks:
+            lc.update(dt)
         for entity in self.entities:
             entity.update(dt)
         self.camera.update(dt)
@@ -60,17 +61,25 @@ class Game_Manager():
                 new_projectiles.append(proj)
         self.projectiles = new_projectiles
 
+    def create_chunk(self,x,z):
+        self.loaded_chunks.append(Game_Chunk(x,z))
+
+    def unload_chunk(self,x,z):
+        pass
+
+
     def create_map(self):
-        self.static_blocks = []
+        self.loaded_chunks = []
+        
         self.entities = []
         self.projectiles = []
 
         self.gravity = 0.03
         self.air_resistance = 0.5
 
-        for i in range(-50,50):
-            for j in range(-50,50):
-                self.static_blocks.append(Block(self, self.assets_loader, "cube.glb", Vector3(i+0.5,0.5,j+0.5)))
+        for x in range(-16,32,16):
+            for z in range(-16,32,16):
+                self.loaded_chunks.append(Game_Chunk(self, x,z))
 
         # --- Inimigos ---
         self.enemies = []
