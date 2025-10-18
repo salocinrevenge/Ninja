@@ -22,6 +22,9 @@ class Jogador():
         self.yaw = 0
         self.render_distance = 2
         self.chunck_coord = (int(math.floor(self.pos.x / 16)) * 16, int(math.floor(self.pos.z / 16)) * 16)
+        self.last_W_reset = 10
+        self.last_W = self.last_W_reset
+        self.running = False
 
     def update(self,dt):
         if rl.is_key_pressed(rl.KEY_F3):
@@ -33,8 +36,18 @@ class Jogador():
         # --- Movimento do jogador ---
         move = Vector3(0, 0, 0)
         if rl.is_key_down(rl.KEY_W):
+            if self.last_W <= 0:
+                self.last_W = self.last_W_reset
             move.x += self.forward.x
             move.z += self.forward.z
+            if self.last_W < self.last_W_reset and self.last_W > 0:
+                self.running = True
+
+        else:
+            if self.running:
+                self.running = False
+            self.last_W -= 1
+            
         if rl.is_key_down(rl.KEY_S):
             move.x -= self.forward.x
             move.z -= self.forward.z
@@ -50,8 +63,9 @@ class Jogador():
             move.x /= length
             move.z /= length
 
-        self.vel.x += move.x * self.walk_speed
-        self.vel.z += move.z * self.walk_speed
+        multiplier = 1.5 if self.running else 1.0
+        self.vel.x += move.x * self.walk_speed*multiplier
+        self.vel.z += move.z * self.walk_speed*multiplier
 
         # --- Pulo ---
         if rl.is_key_pressed(rl.KEY_SPACE) and self.on_ground:
