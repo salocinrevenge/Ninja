@@ -8,7 +8,6 @@ class Game_Chunk():
         self.game = game
         self.x = x
         self.z = z
-        self.limits = (1,1,2)
         self.limits = (16,16,16)
         self.static_blocks = []
         for x in range(self.limits[0]):
@@ -19,7 +18,7 @@ class Game_Chunk():
                     bloco = None
                     if y < 2:
                         active_faces = [True, True, True, True, True, True]
-                        bloco = Block(self, self.game.assets_loader, "grass.png", rl.Vector3(x,y,z), active_faces=active_faces)
+                        bloco = Block(self, self.game.assets_loader, "grass.png", rl.Vector3(x+self.x,y,z+self.z), active_faces=active_faces)
 
                     self.static_blocks[-1][-1].append(bloco)
                     self.update_adjacent_faces(x,y,z)

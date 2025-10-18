@@ -6,7 +6,7 @@ class Jogador():
 
     def __init__(self, game):
         self.game = game
-        self.pos = Vector3(0, 1, 0)
+        self.pos = Vector3(0, 3, 0)
         self.dims = Vector3(1, 2, 1)
         self.walk_speed = 0.1
         self.vel = Vector3(0, 0, 0)
@@ -58,17 +58,33 @@ class Jogador():
 
         
         self.vel = rl.vector3_subtract(self.vel, Vector3(0, self.game.gravity, 0))
-        
-        self.pos = rl.vector3_add(self.pos, self.vel)
-        if self.pos.y <= 1:
-            self.pos.y = 1
+        future_x = self.pos.x + self.vel.x
+        if self.game.check_collision_with_blocks(future_x, self.pos.y, self.pos.z, self.dims):
+            future_x = self.pos.x
+            self.vel.x = 0
+        future_y = self.pos.y + self.vel.y
+        if self.game.check_collision_with_blocks(self.pos.x, future_y, self.pos.z, self.dims):
+            future_y = self.pos.y
             self.on_ground = True
-            self.vel = rl.vector3_multiply(self.vel, Vector3(1, 0, 1))
+            self.vel.y = 0
+        else:
+            self.on_ground = False
+        future_z = self.pos.z + self.vel.z
+        if self.game.check_collision_with_blocks(self.pos.x, self.pos.y, future_z, self.dims):
+            future_z = self.pos.z
+            self.vel.z = 0
+        self.pos = Vector3(future_x, future_y, future_z)
         self.vel = rl.vector3_multiply(self.vel, Vector3(self.game.air_resistance, 1, self.game.air_resistance))
 
     def render(self):
         if (self.time_invulnerable//10) % 2 ==0:
-            rl.draw_cube_v(self.pos, self.dims, rl.BLUE)
+            # Se self.pos representa o canto superior, converte para o centro do cubo
+            cube_pos = Vector3(
+                self.pos.x,   # mover para o centro em X
+                self.pos.y + self.dims.y-1,   # do topo para o centro em Y (baixo -> topo)
+                self.pos.z    # mover para o centro em Z
+            )
+            rl.draw_cube_v(cube_pos, self.dims, rl.BLUE)
             
 
     def hurt(self):

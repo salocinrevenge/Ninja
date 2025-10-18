@@ -21,10 +21,6 @@ class Camera():
         
         # --- Movimento da câmera ---
         mouse_delta = rl.get_mouse_delta()
-        if mouse_delta.x> 100:
-            print(f"{mouse_delta.x=}") 
-        if mouse_delta.y> 100:
-            print(f"{mouse_delta.y=}") 
         self.camera_yaw -= mouse_delta.x * 0.003
         self.camera_pitch -= mouse_delta.y * 0.003
         self.camera_pitch = max(-1.2, min(1.2, self.camera_pitch))

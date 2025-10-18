@@ -96,6 +96,21 @@ class Game_Manager():
             self.enemies.append(enemy)
             self.entities.append(enemy)
 
+    def check_collision_with_blocks(self, x, y, z, dims):
+        # identifica qual chunk o jogador está
+        chunk_x = int(math.floor(x / 16)) * 16
+        chunk_z = int(math.floor(z / 16)) * 16
+        for chunk in self.loaded_chunks:
+            if chunk.x == chunk_x and chunk.z == chunk_z:
+                local_x = int(x - chunk.x)
+                local_y = int(y)
+                local_z = int(z - chunk.z)
+                block = chunk.get_block(local_x, local_y, local_z)
+                if block is not None:
+                    return True
+                return False
+        return False
+
     def add_projectile(self, projectile):
         self.projectiles.append(projectile)
 
