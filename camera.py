@@ -43,7 +43,7 @@ class Camera():
                 self.player.pos.z + cam_offset.z
             )
         else:
-            self.camera.position = rl.Vector3(self.player.pos.x, self.player.pos.y + 1.5, self.player.pos.z)
+            self.camera.position = rl.Vector3(self.player.pos.x, self.player.pos.y + self.player.dims.y, self.player.pos.z)
 
 
         self.camera.target = rl.Vector3(

@@ -60,14 +60,29 @@ class Game_Chunk():
             neighbor.update_face(4,False)
 
     def get_block(self,x,y,z):
+        get_from_other_chunk = False
         if x < 0 or x >= len(self.static_blocks):
+            get_from_other_chunk = True
+        elif y < 0 or y >= len(self.static_blocks[x]):
             return None
-        if y < 0 or y >= len(self.static_blocks[x]):
-            return None
-        if z < 0 or z >= len(self.static_blocks[x][y]):
-            return None
+        elif z < 0 or z >= len(self.static_blocks[x][y]):
+            get_from_other_chunk = True
+        if get_from_other_chunk:
+            global_x = x + self.x
+            global_y = y
+            global_z = z + self.z
+            chunk_x = (global_x // 16) * 16
+            chunk_z = (global_z // 16) * 16
+            neighbor_chunk = self.game.loaded_chunks.get((chunk_x, chunk_z))
+            if not neighbor_chunk:
+                return None
+            local_x = global_x - chunk_x
+            local_y = global_y
+            local_z = global_z - chunk_z
+            return neighbor_chunk.get_block(local_x, local_y, local_z)
+        else:
         
-        return self.static_blocks[x][y][z]
+            return self.static_blocks[x][y][z]
 
     def render(self):
         for x in range(self.limits[0]):

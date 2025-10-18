@@ -15,11 +15,13 @@ class Jogador():
         self.time_invulnerable = 0
         self.forward = Vector3(1,0,0)
         self.right = Vector3(0,0,1)
-        self.forca_pulo = 0.5
+        self.forca_pulo = 0.4
         self.time_invunerability = 100
         self.lives = 5
         self.f3_active = False
         self.yaw = 0
+        self.render_distance = 2
+        self.chunck_coord = (int(math.floor(self.pos.x / 16)) * 16, int(math.floor(self.pos.z / 16)) * 16)
 
     def update(self,dt):
         if rl.is_key_pressed(rl.KEY_F3):
@@ -74,6 +76,10 @@ class Jogador():
             future_z = self.pos.z
             self.vel.z = 0
         self.pos = Vector3(future_x, future_y, future_z)
+        new_chunck_coord = (int(math.floor(self.pos.x / 16)) * 16, int(math.floor(self.pos.z / 16)) * 16)
+        if new_chunck_coord[0] != self.chunck_coord[0] or new_chunck_coord[1] != self.chunck_coord[1]:
+            self.game.update_chunk(self.chunck_coord, new_chunck_coord)
+        self.chunck_coord = new_chunck_coord
         self.vel = rl.vector3_multiply(self.vel, Vector3(self.game.air_resistance, 1, self.game.air_resistance))
 
     def render(self):

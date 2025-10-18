@@ -17,6 +17,7 @@ class Game_Manager():
         self.create_map()
         self.camera = Camera(self, self.jogador)
         self.entities.append(self.jogador)
+
     
     def draw_grid(self, size=20, spacing=1.0):
         for i in range(-size, size + 1):
@@ -33,10 +34,16 @@ class Game_Manager():
         rl.clear_background(rl.RAYWHITE)
 
         rl.begin_mode_3d(self.camera.camera)
-        self.draw_grid(20, 1.0)
+        # self.draw_grid(20, 1.0)
 
-        for lc in self.loaded_chunks:
-            lc.render()
+        # Renderizar apenas o chunk central e seus 8 vizinhos
+        for center in self.center_chunks:
+            offsets = [(0, 0), (-16, 0), (16, 0), (0, -16), (0, 16),
+                (-16, -16), (-16, 16), (16, -16), (16, 16)]
+            for dx, dz in offsets:
+                chunk = self.loaded_chunks.get((center.x + dx, center.z + dz))
+                if chunk:
+                    chunk.render()
         for entity in self.entities:
             entity.render()
         for proj in self.projectiles:
@@ -48,9 +55,30 @@ class Game_Manager():
 
         rl.end_drawing()
 
+    def update_chunk(self, old_coord, new_coord):
+        if old_coord != (None, None):
+            self.center_chunks.remove(self.loaded_chunks[old_coord])
+        if new_coord not in self.loaded_chunks:
+            self.loaded_chunks[new_coord] = Game_Chunk(self, new_coord.x, new_coord.z)
+        self.center_chunks.append(self.loaded_chunks[new_coord])
+        self.load_adjacent_chunks(new_coord)
+
+    def load_adjacent_chunks(self, center_coord):
+        directions = [(-16, 0), (16, 0), (0, -16), (0, 16),
+                      (-16, -16), (-16, 16), (16, -16), (16, 16)]
+        for dir in directions:
+            neighbor_coord = (center_coord[0] + dir[0], center_coord[1] + dir[1])
+            if neighbor_coord not in self.loaded_chunks:
+                self.loaded_chunks[neighbor_coord] = Game_Chunk(self, neighbor_coord[0], neighbor_coord[1])
+
     def update(self, dt):
-        for lc in self.loaded_chunks:
-            lc.update(dt)
+        for center in self.center_chunks:
+            offsets = [(0, 0), (-16, 0), (16, 0), (0, -16), (0, 16),
+                (-16, -16), (-16, 16), (16, -16), (16, 16)]
+            for dx, dz in offsets:
+                chunk = self.loaded_chunks.get((center.x + dx, center.z + dz))
+                if chunk:
+                    chunk.update(dt)
         for entity in self.entities:
             entity.update(dt)
         self.camera.update(dt)
@@ -69,17 +97,21 @@ class Game_Manager():
 
 
     def create_map(self):
-        self.loaded_chunks = []
+        self.center_chunks = []
+        self.loaded_chunks = dict()
+
+        self.loaded_chunks[self.jogador.chunck_coord] = Game_Chunk(self, *self.jogador.chunck_coord)
+        self.update_chunk((None, None), self.jogador.chunck_coord)
         
         self.entities = []
         self.projectiles = []
 
-        self.gravity = 0.03
+        self.gravity = 0.02
         self.air_resistance = 0.5
 
-        for x in range(-16,32,16):
-            for z in range(-16,32,16):
-                self.loaded_chunks.append(Game_Chunk(self, x,z))
+        # for x in range(-16,32,16):
+        #     for z in range(-16,32,16):
+        #         self.loaded_chunks.append(Game_Chunk(self, x,z))
 
         # --- Inimigos ---
         self.enemies = []
@@ -97,18 +129,13 @@ class Game_Manager():
             self.entities.append(enemy)
 
     def check_collision_with_blocks(self, x, y, z, dims):
-        # identifica qual chunk o jogador está
-        chunk_x = int(math.floor(x / 16)) * 16
-        chunk_z = int(math.floor(z / 16)) * 16
-        for chunk in self.loaded_chunks:
-            if chunk.x == chunk_x and chunk.z == chunk_z:
-                local_x = int(x - chunk.x)
-                local_y = int(y)
-                local_z = int(z - chunk.z)
-                block = chunk.get_block(local_x, local_y, local_z)
-                if block is not None:
-                    return True
-                return False
+        chunk = self.loaded_chunks.get((int(math.floor(x / 16)) * 16, int(math.floor(z / 16)) * 16))
+        local_x = int(x - chunk.x)
+        local_y = int(y)
+        local_z = int(z - chunk.z)
+        block = chunk.get_block(local_x, local_y, local_z)
+        if block is not None:
+            return True
         return False
 
     def add_projectile(self, projectile):
