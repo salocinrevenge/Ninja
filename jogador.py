@@ -6,7 +6,7 @@ class Jogador():
 
     def __init__(self, game):
         self.game = game
-        self.pos = Vector3(0, 3, 0)
+        self.pos = Vector3(0, 2, 0)
         self.dims = Vector3(1, 2, 1)
         self.walk_speed = 0.1
         self.vel = Vector3(0, 0, 0)
