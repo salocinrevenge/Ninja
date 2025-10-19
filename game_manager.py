@@ -119,7 +119,7 @@ class Game_Manager():
         self.n_enemies = 0 
         for _ in range(self.n_enemies):
             enemy = Enemy(game = self,
-                          pos = Vector3(random.uniform(-10, 10), 1, random.uniform(-10, 10)),
+                          pos = Vector3(random.uniform(-10, 10), 3, random.uniform(-10, 10)),
                           dir = random.uniform(0, math.tau),
                           speed = 0.05,
                           cooldown= random.uniform(2, 5),

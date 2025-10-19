@@ -34,7 +34,7 @@ class Enemy():
             if d != 0:
                 dir_to_player.x /= d
                 dir_to_player.z /= d
-            self.game.add_projectile(Bullet(Vector3(self.pos.x, 1.5, self.pos.z), Vector3(dir_to_player.x * 0.3, 0, dir_to_player.z * 0.3), self.player, 5))
+            self.game.add_projectile(Bullet(Vector3(self.pos.x, 3.5, self.pos.z), Vector3(dir_to_player.x * 0.3, 0, dir_to_player.z * 0.3), self.player, 5))
 
 
 

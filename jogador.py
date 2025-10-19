@@ -1,6 +1,7 @@
 from pyray import Vector3 
 import pyray as rl
 import math
+from block import Block
 
 class Jogador():
 
@@ -95,6 +96,23 @@ class Jogador():
             self.game.update_chunk(self.chunck_coord, new_chunck_coord)
         self.chunck_coord = new_chunck_coord
         self.vel = rl.vector3_multiply(self.vel, Vector3(self.game.air_resistance, 1, self.game.air_resistance))
+
+        # --- Colocar bloco ---
+        if rl.is_mouse_button_pressed(rl.MOUSE_BUTTON_RIGHT):
+            block_pos = self.game.camera.get_block_looked_at()
+            if block_pos:
+                print(block_pos)
+                bx, by, bz = block_pos
+                chunk = self.game.loaded_chunks.get((int(math.floor(bx / 16)) * 16, int(math.floor(bz / 16)) * 16))
+                if chunk:
+                    local_x = int(bx - chunk.x)
+                    local_y = int(by)
+                    local_z = int(bz - chunk.z)
+                    if chunk.get_block(local_x, local_y, local_z) is None:
+                        active_faces = [True, True, True, True, True, True]
+                        new_block = Block(chunk, self.game.assets_loader, "grass.png", rl.Vector3(bx, by, bz), active_faces=active_faces)
+                        chunk.static_blocks[local_x][local_y][local_z] = new_block
+                        chunk.update_adjacent_faces(local_x, local_y, local_z)
 
     def render(self):
         if (self.time_invulnerable//10) % 2 ==0:

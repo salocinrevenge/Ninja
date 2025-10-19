@@ -6,4 +6,4 @@ if __name__ == "__main__":
     asyncio.run(motor.run())
 
     # Set-ExecutionPolicy RemoteSigned -Scope Process
-    # .\venv\Scripts\activate
+    # .\pypyvenv\Scripts\activate
