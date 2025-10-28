@@ -2,7 +2,7 @@ from jogador import Jogador
 from enemy import Enemy
 from pyray import Vector3
 from camera import Camera
-from block import Block
+from controler import Controler
 from game_chunk import Game_Chunk
 from assets_loader import Assets_Loader
 import random
@@ -17,6 +17,7 @@ class Game_Manager():
         self.create_map()
         self.camera = Camera(self, self.jogador)
         self.entities.append(self.jogador)
+        self.controls = Controler()
 
     
     def draw_grid(self, size=20, spacing=1.0):
@@ -72,6 +73,7 @@ class Game_Manager():
                 self.loaded_chunks[neighbor_coord] = Game_Chunk(self, neighbor_coord[0], neighbor_coord[1])
 
     def update(self, dt):
+        self.input()
         for center in self.center_chunks:
             offsets = [(0, 0), (-16, 0), (16, 0), (0, -16), (0, 16),
                 (-16, -16), (-16, 16), (16, -16), (16, 16)]
@@ -88,6 +90,11 @@ class Game_Manager():
             if proj.alive:
                 new_projectiles.append(proj)
         self.projectiles = new_projectiles
+
+    def input(self):
+        events = self.controls.get_controls()
+        for event in events:
+            self.jogador.input(event)
 
     def create_chunk(self,x,z):
         self.loaded_chunks.append(Game_Chunk(x,z))

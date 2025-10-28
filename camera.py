@@ -23,7 +23,7 @@ class Camera():
         mouse_delta = rl.get_mouse_delta()
         self.camera_yaw -= mouse_delta.x * 0.003
         self.camera_pitch -= mouse_delta.y * 0.003
-        self.camera_pitch = max(-1.2, min(1.2, self.camera_pitch))
+        self.camera_pitch = max(-1.5, min(1.5, self.camera_pitch)) #1.2 original
 
         self.dir_x = math.sin(self.camera_yaw) * math.cos(self.camera_pitch)
         self.dir_y = math.sin(self.camera_pitch)

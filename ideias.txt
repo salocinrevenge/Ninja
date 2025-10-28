@@ -1,0 +1,7 @@
+Cada selo de mao realiza uma parte especifica da conjuração, como mover pra cima, para dentro ou para fora.
+
+O shift entra no modo conjuração
+A rodinha do mouse e os numeros levam a seleção do selo. 
+Clicar com direito adiciona o selo na pilha.
+Clicar com esquerdo conclui o jutso.
+Sair do modo de conjuração não remove a pilha, mas passar muito tempo sem enviar chakra para a parte do corpo que o ultimo selo foi adicionado, destroi a pilha.
