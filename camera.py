@@ -60,7 +60,7 @@ class Camera():
             check_x = self.camera.position.x + self.dir_x * d * step
             check_y = self.camera.position.y + self.dir_y * d * step
             check_z = self.camera.position.z + self.dir_z * d * step
-            if self.game.check_collision_with_blocks(check_x, check_y, check_z, rl.Vector3(0.1, 0.1, 0.1)):
+            if self.game.check_collision_with_blocks(check_x, check_y, check_z, rl.Vector3(0, 0, 0)):
                 return (int(math.floor(check_x)), int(math.floor(check_y)+(self.player.dims.y-1)), int(math.floor(check_z)))
         return None
 

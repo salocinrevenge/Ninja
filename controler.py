@@ -9,6 +9,8 @@ class Controler():
             pyray.KEY_D: "D",
             pyray.KEY_SPACE: "SPACE",
             pyray.KEY_LEFT_SHIFT: "SHIFT",
+            pyray.KEY_F3: "F3",
+            pyray.KEY_F5: "F5",
         }
         self.key_state = {value: False for value in self.key_map.values()}
 

@@ -69,11 +69,13 @@ class Jogador():
 
     def input(self,event):
         self.input_chakra(event)
+        if event == 'F3_DOWN':
+            self.f3_active = not self.f3_active
+        
+
 
     def update(self,dt):
         self.time +=1
-        if rl.is_key_pressed(rl.KEY_F3):
-            self.f3_active = not self.f3_active
 
         if self.time_invulnerable > 0:
             self.time_invulnerable -= 1

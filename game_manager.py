@@ -140,9 +140,19 @@ class Game_Manager():
         local_x = int(x - chunk.x)
         local_y = int(y)
         local_z = int(z - chunk.z)
-        block = chunk.get_block(local_x, local_y, local_z)
-        if block is not None:
-            return True
+        # Check all 8 corners of the parallelepiped
+        for dx in [-(dims.x/2), dims.x/2]:
+            for dy in [0, dims.y]:
+                for dz in [-(dims.z/2), dims.z/2]:
+                    check_x = (x + dx - chunk.x)
+                    check_y = (y + dy)
+                    check_z = (z + dz - chunk.z)
+                    check_x = int(math.floor(check_x))
+                    check_y = int(math.floor(check_y))
+                    check_z = int(math.floor(check_z))
+                    block = chunk.get_block(check_x, check_y, check_z)
+                    if block is not None:
+                        return True
         return False
 
     def add_projectile(self, projectile):
