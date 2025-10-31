@@ -135,15 +135,21 @@ class Game_Manager():
             self.enemies.append(enemy)
             self.entities.append(enemy)
 
-    def check_collision_with_blocks(self, x, y, z, dims):
+    def check_collision_with_blocks(self, x, y, z, dims, debug = False):
         chunk = self.loaded_chunks.get((int(math.floor(x / 16)) * 16, int(math.floor(z / 16)) * 16))
-        local_x = int(x - chunk.x)
-        local_y = int(y)
-        local_z = int(z - chunk.z)
+        if dims == None:
+            local_x = int(x - chunk.x)
+            local_y = int(y)
+            local_z = int(z - chunk.z)
+            block = chunk.get_block(int(math.floor(local_x)), int(math.floor(local_y)), int(math.floor(local_z)))
+            return block is not None
         # Check all 8 corners of the parallelepiped
+
         for dx in [-(dims.x/2), dims.x/2]:
             for dy in [0, dims.y]:
                 for dz in [-(dims.z/2), dims.z/2]:
+                    if debug:
+                        print("Checking collision at:", local_x + dx, local_y + dy, local_z + dz)
                     check_x = (x + dx - chunk.x)
                     check_y = (y + dy)
                     check_z = (z + dz - chunk.z)

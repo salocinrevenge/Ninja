@@ -9,7 +9,7 @@ class Jogador():
     def __init__(self, game):
         self.game = game
         self.pos = Vector3(0, 2, 0)
-        self.dims = Vector3(1, 2, 1)
+        self.dims = Vector3(0.8, 1.9, 0.8)
         self.walk_speed = 0.1
         self.vel = Vector3(0, 0, 0)
         self.on_ground = True
@@ -27,6 +27,7 @@ class Jogador():
         self.last_W_reset = 10
         self.last_W = self.last_W_reset
         self.running = False
+        self.third_person = False
 
         self.time = 0
 
@@ -71,8 +72,8 @@ class Jogador():
         self.input_chakra(event)
         if event == 'F3_DOWN':
             self.f3_active = not self.f3_active
-        
-
+        if event == 'F5_DOWN':
+            self.third_person = not self.third_person
 
     def update(self,dt):
         self.time +=1
@@ -146,16 +147,21 @@ class Jogador():
         # --- Colocar bloco ---
         if rl.is_mouse_button_pressed(rl.MOUSE_BUTTON_RIGHT):
             block_pos = self.game.camera.get_block_looked_at()
+            print("Looking at block:", block_pos)
             if block_pos:
-                print(block_pos)
                 bx, by, bz = block_pos
+                by+=1
                 chunk = self.game.loaded_chunks.get((int(math.floor(bx / 16)) * 16, int(math.floor(bz / 16)) * 16))
                 if chunk:
                     local_x = int(bx - chunk.x)
                     local_y = int(by)
                     local_z = int(bz - chunk.z)
+                    print("Local block position:", local_x, local_y, local_z)
+                    bloco = chunk.get_block(local_x, local_y, local_z)
+                    print("Block at position:", bloco)
                     if chunk.get_block(local_x, local_y, local_z) is None:
                         active_faces = [True, True, True, True, True, True]
+                        print("Placing block at:", bx, by, bz)
                         new_block = Block(chunk, self.game.assets_loader, "grass.png", rl.Vector3(bx, by, bz), active_faces=active_faces)
                         chunk.static_blocks[local_x][local_y][local_z] = new_block
                         chunk.update_adjacent_faces(local_x, local_y, local_z)
@@ -168,8 +174,8 @@ class Jogador():
                 self.pos.y + self.dims.y-1,   # do topo para o centro em Y (baixo -> topo)
                 self.pos.z    # mover para o centro em Z
             )
-            rl.draw_cube_v(cube_pos, self.dims, rl.BLUE)
-            
+            if self.third_person:
+                rl.draw_cube_v(cube_pos, self.dims, rl.BLUE)
 
     def hurt(self):
         if self.time_invulnerable > 0:
@@ -190,6 +196,21 @@ class Jogador():
         rl.draw_text("F5 alterna visão", 10, 100, 20, rl.GRAY)
 
         self.render_chakra()
+
+        # Draw crosshair
+        screen_width = rl.get_screen_width()
+        screen_height = rl.get_screen_height()
+        center_x = screen_width // 2 
+        center_y = screen_height // 2 -100
+        size = 10
+        # Draw black border lines first
+        # Draw multiple black lines to create a thicker border
+        for offset in [-1, 0, 1]:
+            rl.draw_line(center_x - size - 1, center_y + offset, center_x + size + 1, center_y + offset, rl.BLACK)
+            rl.draw_line(center_x + offset, center_y - size - 1, center_x + offset, center_y + size + 1, rl.BLACK)
+        # Draw white crosshair on top
+        rl.draw_line(center_x - size, center_y, center_x + size, center_y, rl.WHITE)
+        rl.draw_line(center_x, center_y - size, center_x, center_y + size, rl.WHITE)
 
         if self.f3_active:
             text = f"Position:\nX: {self.pos.x}\nY: {self.pos.y}\nZ: {self.pos.z} \
