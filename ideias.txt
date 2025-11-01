@@ -25,3 +25,7 @@ Sair do modo de conjuração não remove a pilha, mas passar muito tempo sem env
 Notas: manter o parâmetro `debug=True` temporariamente pode ajudar a depurar
 empates de t_max (quando o raio cruza exatamente uma aresta); pode-se usar
 uma pequena tolerância para desempatar de forma consistente.
+
+
+otimizacao:
+I Optimised My Game Engine Up To 12000 FPS

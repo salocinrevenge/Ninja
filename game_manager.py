@@ -15,6 +15,7 @@ class Game_Manager():
         self.assets_loader = Assets_Loader(self)
         self.jogador = Jogador(self)
         self.max_height = 16
+        self.max_height = 256
         self.create_map()
         self.camera = Camera(self, self.jogador)
         self.entities.append(self.jogador)
@@ -33,7 +34,8 @@ class Game_Manager():
     def render(self):
 
         rl.begin_drawing()
-        rl.clear_background(rl.RAYWHITE)
+        rl.clear_background(rl.Color(120, 255, 255, 255))
+        rl.draw_rectangle_gradient_v(0, 0, rl.get_screen_width(), rl.get_screen_height(), rl.Color(255, 255, 255, 0), rl.Color(255, 255, 255, 255))
 
         rl.begin_mode_3d(self.camera.camera)
         # self.draw_grid(20, 1.0)
@@ -66,7 +68,7 @@ class Game_Manager():
         if old_coord != (None, None):
             self.center_chunks.remove(self.loaded_chunks[old_coord])
         if new_coord not in self.loaded_chunks:
-            self.loaded_chunks[new_coord] = Game_Chunk(self, new_coord.x, new_coord.z)
+            self.loaded_chunks[new_coord] = Game_Chunk(self, new_coord.x, new_coord.z, max_height=self.max_height)
         self.center_chunks.append(self.loaded_chunks[new_coord])
         self.load_adjacent_chunks(new_coord)
 
@@ -76,7 +78,7 @@ class Game_Manager():
         for dir in directions:
             neighbor_coord = (center_coord[0] + dir[0], center_coord[1] + dir[1])
             if neighbor_coord not in self.loaded_chunks:
-                self.loaded_chunks[neighbor_coord] = Game_Chunk(self, neighbor_coord[0], neighbor_coord[1])
+                self.loaded_chunks[neighbor_coord] = Game_Chunk(self, neighbor_coord[0], neighbor_coord[1], max_height=self.max_height)
 
     def update(self, dt):
         self.input()

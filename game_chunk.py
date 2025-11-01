@@ -2,7 +2,7 @@ from block import Block
 import pyray as rl
 
 class Game_Chunk():
-    def __init__(self,game,x,z,max_height=16):
+    def __init__(self,game,x,z,max_height):
         assert x%16 ==0, "x não é múltiplo de 16"
         assert z%16 ==0, "z não é múltiplo de 16"
         self.game = game

@@ -1,4 +1,5 @@
 import pyray as rl
+import json, os
 
 class Assets_Loader():
     
@@ -8,6 +9,9 @@ class Assets_Loader():
         self.textures_loaded = dict()
         self.meshes_loaded = dict()
         self.hand_positions_path = "assets/hand_positions/"
+        self.body_positions_path = "assets/body_positions/"
+        self.bodies = {"A": {"None": "head", "A": "sub/brain", "S": "sub/eye", "D":"sub/nose_mouth"}, "S": {"None": "body", "A": "sub/lung", "S": "sub/arm", "D":"sub/hand"}, "D": {"None": "legs", "A": "sub/abdomen", "S": "sub/leg", "D":"sub/foot"}}
+        self.load_elements()
 
     def get_model(self,name):
         if name in self.models_loaded.keys():
@@ -106,9 +110,19 @@ class Assets_Loader():
 
         return MeshWrapper(mesh, vertices_buf, texcoords_buf, indices_buf)
 
+    def load_elements(self):
+        elems_path = "assets/elements.json"
+        with open(elems_path, "r", encoding="utf-8") as f:
+            self.elements_properities = json.load(f)
+
+    def color_element(self, element):
+        if element in self.elements_properities:
+            return True, self.elements_properities[element]["cor"]
+        return False, self.elements_properities["None"]["cor"]
+
 
     def clear_all(self):
-
+        return
         print("Clearing all loaded assets...")
         print(len(self.models_loaded), "models,",
               len(self.textures_loaded), "textures,",

@@ -48,7 +48,7 @@ class Jogador():
         self.modo = 'mobilidade'
         self.treshold = [0.11, 0.12, 0.11]
         self.treshold = [10, 12, 10]
-        self.vezesUsado = {"agua": 0, "fogo": 0, "terra": 0, "vento": 0, "relampago": 0, "chakra": 0}
+        self.vezesUsado = {"agua": 0, "fogo": 0, "terra": 0, "ar": 0, "relampago": 0, "chakra": 0}
         self.jumping = False
         self.pilha_conjuracao = []
 
@@ -333,13 +333,14 @@ class Jogador():
         elif rapido == [True, True, False]:
             self.elemento = "fogo"
         elif rapido == [False, True, True] or rapido == [True, False, True]:
-            self.elemento = "vento"
+            self.elemento = "ar"
         elif rapido == [True, False, False] or rapido == [False, False, True] or rapido == [False, True, False]:
             self.elemento = "agua"
         elif rapido == [False, False, False]:
             self.elemento = "terra"
         else:
             raise Exception(f"Erro ao escolher elemento: {rapido}")
+        print(self.elemento)
 
     def toggleChakra(self):
         if self.modo == 'mobilidade':
@@ -353,22 +354,12 @@ class Jogador():
 
     def render_chakra(self):
         ALPHA = 0.7  # Define alpha value for filled circles
-        match self.elemento:
-            case "agua":
-                corChakra = rl.Color(0, 0, 255, 255)
-            case "fogo":
-                corChakra = rl.Color(255, 0, 0, 255)
-            case "terra":
-                corChakra = rl.Color(255, 122, 0, 255)
-            case "vento":
-                corChakra = rl.Color(0, 255, 0, 255)
-            case "relampago":
-                corChakra = rl.Color(255, 255, 0, 255)
-            case _:
-                if self.modo == 'chakra':
-                    corChakra = rl.Color(0, 255, 255, 255)
-                else:
-                    corChakra = rl.Color(255, 255, 255, 255)
+        ok,corChakra = self.game.assets_loader.color_element(self.elemento)
+        corChakra = rl.Color(*corChakra)
+        if not ok:
+            if self.modo == 'chakra':
+                corChakra = rl.Color(0, 255, 255, 255)
+                
         borda = 5
         
         screen_width = rl.get_screen_width()
@@ -557,7 +548,7 @@ class Jogador():
 
     def render_spell_stack(self):
         # Constants for the spell display
-        SPELL_SIZE = 20
+        SPELL_SIZE = 40
         PADDING = 5
         BORDER = 2
         MAX_WIDTH = rl.get_screen_width() // 3  # Use 1/3 of screen width
@@ -600,6 +591,18 @@ class Jogador():
                         0,
                         rl.WHITE
                     )
+            elif particionar[0] == "alma":
+
+                body_texture = self.game.assets_loader.get_texture(self.game.assets_loader.body_positions_path + self.game.assets_loader.bodies[particionar[1]][particionar[2]]+".png")
+                ok, cor = self.game.assets_loader.color_element(particionar[3])
+                rl.draw_texture_pro(
+                    body_texture,
+                    rl.Rectangle(0, 0, body_texture.width, body_texture.height),
+                    rl.Rectangle(x, start_y, SPELL_SIZE, SPELL_SIZE),
+                    rl.Vector2(0, 0),
+                    0,
+                    rl.Color(*cor)
+                )
             else:
                 rl.draw_rectangle(x, start_y, SPELL_SIZE, SPELL_SIZE, rl.GRAY)
             rl.draw_rectangle_lines_ex(rl.Rectangle(x, start_y, SPELL_SIZE, SPELL_SIZE),BORDER, rl.WHITE)

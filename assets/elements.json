@@ -1,0 +1,58 @@
+{
+    "fogo": {
+        "cor": [255, 0, 0, 255],
+        "peso": 12.5,
+        "velocidade": 8.0,
+        "resistencia": 4.5,
+        "dano": 18
+    },
+    "agua": {
+        "cor": [0, 0, 255, 255],
+        "peso": 15.0,
+        "velocidade": 6.5,
+        "resistencia": 8.0,
+        "dano": 12
+    },
+    "ar": {
+        "cor": [0, 255, 0, 255],
+        "peso": 5.0,
+        "velocidade": 12.0,
+        "resistencia": 3.0,
+        "dano": 8
+    },
+    "relampago": {
+        "cor": [255, 255, 0, 255],
+        "peso": 1.0,
+        "velocidade": 30.0,
+        "resistencia": 0.0,
+        "dano": 30
+    },
+    "terra": {
+        "cor": [255, 122, 0, 255],
+        "peso": 25.0,
+        "velocidade": 4.0,
+        "resistencia": 10.0,
+        "dano": 14
+    },
+    "metal": {
+        "cor": [180, 180, 200, 1],
+        "peso": 30.0,
+        "velocidade": 5.5,
+        "resistencia": 15.0,
+        "dano": 13
+    },
+    "madeira": {
+        "cor": [150, 100, 50, 1],
+        "peso": 18.0,
+        "velocidade": 5.0,
+        "resistencia": 12.0,
+        "dano": 11
+    },
+    "None": {
+        "cor": [255, 255, 255, 255],
+        "peso": 18.0,
+        "velocidade": 5.0,
+        "resistencia": 12.0,
+        "dano": 11
+    }
+}
