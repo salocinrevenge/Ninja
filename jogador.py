@@ -6,6 +6,7 @@ from block import Block
 from utils import check_colision_point
 from inventario import Inventario
 from spell import Spell
+import copy
 
 class Jogador():
 
@@ -151,7 +152,7 @@ class Jogador():
                 self.can_place_block = True
             case 'LEFT_MOUSE_DOWN':
                 if self.modo == 'chakra':
-                    self.cast_spell()
+                    self.activate_spell()
                 elif self.modo == 'mobilidade' and self.can_break_block:
                     self.try_break_block()
                     self.can_break_block = False
@@ -164,10 +165,29 @@ class Jogador():
                 if self.modo == 'mobilidade' or event == 'W_UP':
                     self.pressed_move_keys[event.split('_')[0]] = False
 
-    def cast_spell(self):
+    def activate_spell(self):
         if len(self.pilha_conjuracao) ==0:
             return
         spell = self.pilha_conjuracao.pop()
+        if spell.element:
+            self.cast_spell(spell)
+            return
+        if len(self.pilha_conjuracao) ==0:
+            return
+        if spell.hand_position == "double":
+            if self.pilha_conjuracao[-1].element:
+                for _ in range(spell.properties["multipling"] -1):
+                    self.pilha_conjuracao.append(copy.copy(self.pilha_conjuracao[-1]))
+                return
+            if self.pilha_conjuracao[-1].hand_position:
+                self.pilha_conjuracao[-1].double_all_properties()
+                return
+            return
+        self.pilha_conjuracao[-1].merge(spell)
+        self.activate_spell()
+
+
+    def cast_spell(self, spell):
         print(f"Conjurando {spell}!")
 
     def movement(self):
@@ -342,7 +362,6 @@ class Jogador():
             self.elemento = "terra"
         else:
             raise Exception(f"Erro ao escolher elemento: {rapido}")
-        print(self.elemento)
 
     def toggleChakra(self):
         if self.modo == 'mobilidade':

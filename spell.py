@@ -8,13 +8,31 @@ class Spell:
         self.element = element
         self.hand_position = hand_position
         self.properties = dict()
+        self.add_native_atributes()
+        self.ceil_values = 1024
+
+    def add_native_atributes(self):
+        if self.hand_position:
+            self.properties = self.caster.game.assets_loader.hand_positions_properties[self.hand_position].copy()
+        elif self.element:
+            self.properties = self.caster.game.assets_loader.elements_properities[self.element].copy()
+            
 
     def merge(self, other_spell):
+        # if self.hand_position and other_spell.hand_position
         pass
 
     def double_all_properties(self):
-        for i in range(len(self.properties)):
-            self.properties[i] *= 2
+        number_violation = False
+        for key in self.properties:
+            self.properties[key] *= 2
+            if self.properties[key] > self.ceil_values:
+                self.properties[key] = self.ceil_values
+                number_violation = True
+        if number_violation:
+            self.caster.messages.append(("Some spell properties reached maximum value of {}".format(self.ceil_values), 120))
+
+        print("Doubled spell properties:", self.properties)
 
     def add_property(self, property, value):
         if property not in self.properties:

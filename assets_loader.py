@@ -12,6 +12,7 @@ class Assets_Loader():
         self.body_positions_path = "assets/body_positions/"
         self.bodies = {"A": {"None": "head", "A": "sub/brain", "S": "sub/eye", "D":"sub/nose_mouth"}, "S": {"None": "body", "A": "sub/lung", "S": "sub/arm", "D":"sub/hand"}, "D": {"None": "legs", "A": "sub/abdomen", "S": "sub/leg", "D":"sub/foot"}}
         self.load_elements()
+        self.load_hand_positions()
         self.load_recipes()
 
     def get_model(self,name):
@@ -115,6 +116,11 @@ class Assets_Loader():
         elems_path = "assets/elements.json"
         with open(elems_path, "r", encoding="utf-8") as f:
             self.elements_properities = json.load(f)
+
+    def load_hand_positions(self):
+        hand_pos_path = "assets/hand_pos_prop.json"
+        with open(hand_pos_path, "r", encoding="utf-8") as f:
+            self.hand_positions_properties = json.load(f)
 
     def load_recipes(self):
         recipes_path = "assets/recipes.json"
