@@ -3,6 +3,7 @@ from pyray import Vector3
 import pyray as rl
 import math
 from block import Block
+from utils import check_colision_point
 
 class Jogador():
 
@@ -41,6 +42,8 @@ class Jogador():
         self.treshold = [10, 12, 10]
         self.vezesUsado = {"agua": 0, "fogo": 0, "terra": 0, "vento": 0, "relampago": 0, "chakra": 0}
         self.jumping = False
+
+    
 
     def input_chakra(self, tecla):
         # Check pressed keys
@@ -183,7 +186,7 @@ class Jogador():
                     print("Local block position:", local_x, local_y, local_z)
                     bloco = chunk.get_block(local_x, local_y, local_z)
                     print("Block at position:", bloco)
-                    if chunk.get_block(local_x, local_y, local_z) is None:
+                    if chunk.get_block(local_x, local_y, local_z) is None and not check_colision_point(self.pos, self.dims, Vector3(bx, by, bz), Vector3(1,1,1)):
                         active_faces = [True, True, True, True, True, True]
                         print("Placing block at:", bx, by, bz)
                         new_block = Block(chunk, self.game.assets_loader, "grass.png", rl.Vector3(bx, by, bz), active_faces=active_faces)

@@ -151,7 +151,7 @@ class Game_Manager():
         # Check all 8 corners of the parallelepiped
 
         for dx in [-(dims.x/2), dims.x/2]:
-            for dy in [0, dims.y]:
+            for dy in [0, dims.y/2, dims.y]:
                 for dz in [-(dims.z/2), dims.z/2]:
                     if debug:
                         print("Checking collision at:", local_x + dx, local_y + dy, local_z + dz)

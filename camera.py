@@ -50,7 +50,7 @@ class Camera():
         )
         # self.camera.position = rl.Vector3(0, 10, 0) # debug camera no teto
 
-    def get_block_looked_at(self, max_distance=5):
+    def get_block_looked_at(self, max_distance=10):
         """
         Retorna o bloco que o jogador está olhando, até uma distância máxima.
         Usa raycast em grade (3D DDA) como o Minecraft.
