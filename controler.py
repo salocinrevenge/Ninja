@@ -11,6 +11,8 @@ class Controler():
             pyray.KEY_LEFT_SHIFT: "SHIFT",
             pyray.KEY_F3: "F3",
             pyray.KEY_F5: "F5",
+            pyray.MOUSE_BUTTON_LEFT: "LEFT_MOUSE",
+            pyray.MOUSE_BUTTON_RIGHT: "RIGHT_MOUSE",
         }
         self.key_state = {value: False for value in self.key_map.values()}
 
@@ -20,6 +22,7 @@ class Controler():
         self.actions.clear()
         for key, value in self.key_map.items():
             is_pressed = pyray.is_key_down(key)
+            is_pressed = pyray.is_mouse_button_down(key) if "MOUSE" in value else is_pressed
             if is_pressed != self.key_state[value]:
                 self.key_state[value] = is_pressed
                 if is_pressed:

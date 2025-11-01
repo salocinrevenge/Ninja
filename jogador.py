@@ -30,7 +30,8 @@ class Jogador():
         self.running = False
         self.third_person = False
         self.eye_height = 1.75
-
+        self.can_place_block = True
+        self.can_break_block = True
         self.time = 0
 
         # chakra
@@ -76,6 +77,58 @@ class Jogador():
                         if self.elemento == None:
                             self.escolheElemento()
 
+    def try_place_block(self):
+        block_pos = self.game.camera.get_block_looked_at()
+        print("Looking at block:", block_pos)
+        if block_pos:
+            bx, by, bz, face = block_pos
+            match face:
+                case "top":
+                    by += 1
+                case "bottom":
+                    by -= 1
+                case "north":
+                    bz += 1
+                case "south":
+                    bz -= 1
+                case "east":
+                    bx += 1
+                case "west":
+                    bx -= 1
+            chunk = self.game.loaded_chunks.get((int(math.floor(bx / 16)) * 16, int(math.floor(bz / 16)) * 16))
+            if chunk:
+                local_x = int(bx - chunk.x)
+                local_y = int(by)
+                local_z = int(bz - chunk.z)
+                print("Local block position:", local_x, local_y, local_z)
+                bloco = chunk.get_block(local_x, local_y, local_z)
+                print("Block at position:", bloco)
+                if chunk.get_block(local_x, local_y, local_z) is None and not check_colision_point(self.pos, self.dims, Vector3(bx, by, bz), Vector3(1,1,1)):
+                    active_faces = [True, True, True, True, True, True]
+                    print("Placing block at:", bx, by, bz)
+                    new_block = Block(chunk, self.game.assets_loader, "grass.png", rl.Vector3(bx, by, bz), active_faces=active_faces)
+                    chunk.static_blocks[local_x][local_y][local_z] = new_block
+                    chunk.update_adjacent_faces(local_x, local_y, local_z)
+
+
+    def try_break_block(self):
+        block_pos = self.game.camera.get_block_looked_at()
+        print("Looking at block to break:", block_pos)
+        if block_pos:
+            bx, by, bz, face = block_pos
+            chunk = self.game.loaded_chunks.get((int(math.floor(bx / 16)) * 16, int(math.floor(bz / 16)) * 16))
+            if chunk:
+                local_x = int(bx - chunk.x)
+                local_y = int(by)
+                local_z = int(bz - chunk.z)
+                print("Local block position to break:", local_x, local_y, local_z)
+                bloco = chunk.get_block(local_x, local_y, local_z)
+                print("Block at position to break:", bloco)
+                if bloco is not None:
+                    print("Breaking block at:", bx, by, bz)
+                    chunk.static_blocks[local_x][local_y][local_z] = None
+                    chunk.update_adjacent_faces(local_x, local_y, local_z)
+
     def input(self,event):
         self.input_chakra(event)
         match event:
@@ -88,6 +141,18 @@ class Jogador():
                     self.jumping = True
             case 'SPACE_UP':
                 self.jumping = False
+            case 'RIGHT_MOUSE_DOWN':
+                if self.can_place_block:
+                    self.try_place_block()
+                    self.can_place_block = False
+            case 'RIGHT_MOUSE_UP':
+                self.can_place_block = True
+            case 'LEFT_MOUSE_DOWN':
+                if self.can_break_block:
+                    self.try_break_block()
+                    self.can_break_block = False
+            case 'LEFT_MOUSE_UP':
+                self.can_break_block = True
 
     def update(self,dt):
         self.time +=1
@@ -158,40 +223,7 @@ class Jogador():
             self.game.update_chunk(self.chunck_coord, new_chunck_coord)
         self.chunck_coord = new_chunck_coord
         self.vel = rl.vector3_multiply(self.vel, Vector3(self.game.air_resistance, 1, self.game.air_resistance))
-
-        # --- Colocar bloco ---
-        if rl.is_mouse_button_pressed(rl.MOUSE_BUTTON_RIGHT):
-            block_pos = self.game.camera.get_block_looked_at()
-            print("Looking at block:", block_pos)
-            if block_pos:
-                bx, by, bz, face = block_pos
-                match face:
-                    case "top":
-                        by += 1
-                    case "bottom":
-                        by -= 1
-                    case "north":
-                        bz += 1
-                    case "south":
-                        bz -= 1
-                    case "east":
-                        bx += 1
-                    case "west":
-                        bx -= 1
-                chunk = self.game.loaded_chunks.get((int(math.floor(bx / 16)) * 16, int(math.floor(bz / 16)) * 16))
-                if chunk:
-                    local_x = int(bx - chunk.x)
-                    local_y = int(by)
-                    local_z = int(bz - chunk.z)
-                    print("Local block position:", local_x, local_y, local_z)
-                    bloco = chunk.get_block(local_x, local_y, local_z)
-                    print("Block at position:", bloco)
-                    if chunk.get_block(local_x, local_y, local_z) is None and not check_colision_point(self.pos, self.dims, Vector3(bx, by, bz), Vector3(1,1,1)):
-                        active_faces = [True, True, True, True, True, True]
-                        print("Placing block at:", bx, by, bz)
-                        new_block = Block(chunk, self.game.assets_loader, "grass.png", rl.Vector3(bx, by, bz), active_faces=active_faces)
-                        chunk.static_blocks[local_x][local_y][local_z] = new_block
-                        chunk.update_adjacent_faces(local_x, local_y, local_z)
+            
 
     def render(self):
         if (self.time_invulnerable//10) % 2 ==0:

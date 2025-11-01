@@ -25,39 +25,43 @@ class Game_Chunk():
 
     def update_adjacent_faces(self,x,y,z):
         block = self.get_block(x,y,z)
-        if not block:
-            return
         # print("Atualizando faces adjacentes de bloco em",x,y,z)
         # Frente (z+1)
         neighbor = self.get_block(x,y,z+1)
         if neighbor:
-            block.update_face(0,False)
-            neighbor.update_face(1,False) 
+            if block:
+                block.update_face(0,False)
+            neighbor.update_face(1,block is None) 
         # Trás (z-1)
         neighbor = self.get_block(x,y,z-1)
         if neighbor:
-            block.update_face(1,False)
-            neighbor.update_face(0,False)
+            if block:
+                block.update_face(1,False)
+            neighbor.update_face(0,block is None)
         # Direita (x+1)
         neighbor = self.get_block(x+1,y,z)
         if neighbor:
-            block.update_face(2,False)
-            neighbor.update_face(3,False)
+            if block:
+                block.update_face(2,False)
+            neighbor.update_face(3,block is None)
         # Esquerda (x-1)
         neighbor = self.get_block(x-1,y,z)
         if neighbor:
-            block.update_face(3,False)
-            neighbor.update_face(2,False)
+            if block:
+                block.update_face(3,False)
+            neighbor.update_face(2,block is None)
         # Topo (y+1)
         neighbor = self.get_block(x,y+1,z)
         if neighbor:
-            block.update_face(4,False)
-            neighbor.update_face(5,False)
+            if block:
+                block.update_face(4,False)
+            neighbor.update_face(5,block is None)
         # Base (y-1)
         neighbor = self.get_block(x,y-1,z)
         if neighbor:
-            block.update_face(5,False)
-            neighbor.update_face(4,False)
+            if block:
+                block.update_face(5,False)
+            neighbor.update_face(4,block is None)
 
     def get_block(self,x,y,z):
         get_from_other_chunk = False
