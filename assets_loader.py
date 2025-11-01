@@ -7,6 +7,7 @@ class Assets_Loader():
         self.models_loaded = dict()
         self.textures_loaded = dict()
         self.meshes_loaded = dict()
+        self.hand_positions_path = "assets/hand_positions/"
 
     def get_model(self,name):
         if name in self.models_loaded.keys():

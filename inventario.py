@@ -11,7 +11,6 @@ class Inventario:
         self.alpha_hotbar = 200  # Transparência da hotbar (0-255)
 
         # Posicoes de mao
-        self.hand_positions_path = "assets/hand_positions/"
         self.hand_positions = ["up", "down", "move", "stop", "expand", "condense", "divide", "unite", "invert", "double", None, None]
 
     def render(self):
@@ -57,12 +56,17 @@ class Inventario:
         elif self.jogador.modo == 'mobilidade':
             self.draw_itens(hotbar_x, hotbar_y, hotbar_width, hotbar_height, slot_size, slot_spacing, initial_space)
 
+    def get_selected_hand_position(self):
+        if 0 <= self.selected_slot < len(self.hand_positions):
+            return self.hand_positions[self.selected_slot]
+        return None
+
     def draw_chakra_bar(self, hotbar_x, hotbar_y, hotbar_width, hotbar_height, slot_size, slot_spacing, initial_space):
         for i, hand_position in enumerate(self.hand_positions):
             if i < self.number_of_slots and hand_position is not None:
                 x = hotbar_x + (i * slot_spacing) + initial_space
                 y = hotbar_y + (hotbar_height - slot_size) / 2
-                image_path = f"{self.hand_positions_path}{hand_position}.png"
+                image_path = f"{self.assets_loader.hand_positions_path}{hand_position}.png"
                 texture = self.assets_loader.get_texture(image_path)
                 
                 # Calculate scale to fit slot size while maintaining aspect ratio

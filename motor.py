@@ -21,6 +21,8 @@ class Motor():
         rl.set_target_fps(60)
         rl.disable_cursor()
 
+        self.fullscreen_toggle()  # Start in windowed mode for debug
+
         self.game = Game_Manager(self)
 
     async def run(self):

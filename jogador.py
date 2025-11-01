@@ -50,6 +50,7 @@ class Jogador():
         self.treshold = [10, 12, 10]
         self.vezesUsado = {"agua": 0, "fogo": 0, "terra": 0, "vento": 0, "relampago": 0, "chakra": 0}
         self.jumping = False
+        self.pilha_conjuracao = []
 
     
 
@@ -131,21 +132,41 @@ class Jogador():
             case 'SPACE_UP':
                 self.jumping = False
             case 'RIGHT_MOUSE_DOWN':
-                if self.can_place_block:
+                if self.modo == 'chakra':
+                    if self.posChakra['regiao'] != None:
+                        self.pilha_conjuracao.append(f"alma:{self.posChakra['regiao']}:{self.posChakra['subregiao']}:{self.elemento}")
+                        self.elemento = None
+                        self.posChakra = {"regiao": None,"tempo1": 0, "tempo2": 0, "subregiao": None, "tempo3": 0}
+                    else:
+                        hp = self.inventario.get_selected_hand_position()
+                        if hp is not None:
+                            self.pilha_conjuracao.append(f"hand_position:{hp}")
+                    print(f"Pilha de conjuracao: {self.pilha_conjuracao}")
+                elif self.modo == 'mobilidade' and self.can_place_block:
                     self.try_place_block()
                     self.can_place_block = False
             case 'RIGHT_MOUSE_UP':
                 self.can_place_block = True
             case 'LEFT_MOUSE_DOWN':
-                if self.can_break_block:
+                if self.modo == 'chakra':
+                    self.cast_spell()
+                elif self.modo == 'mobilidade' and self.can_break_block:
                     self.try_break_block()
                     self.can_break_block = False
             case 'LEFT_MOUSE_UP':
                 self.can_break_block = True
             case 'A_DOWN' | 'S_DOWN' | 'D_DOWN' | 'W_DOWN':
-                self.pressed_move_keys[event.split('_')[0]] = True
+                if self.modo == 'mobilidade' or event == 'W_DOWN':
+                    self.pressed_move_keys[event.split('_')[0]] = True
             case 'A_UP' | 'S_UP' | 'D_UP' | 'W_UP':
-                self.pressed_move_keys[event.split('_')[0]] = False
+                if self.modo == 'mobilidade' or event == 'W_UP':
+                    self.pressed_move_keys[event.split('_')[0]] = False
+
+    def cast_spell(self):
+        if len(self.pilha_conjuracao) ==0:
+            return
+        spell = self.pilha_conjuracao.pop()
+        print(f"Conjurando {spell}!")
 
     def movement(self):
         if self.jumping and self.on_ground:
@@ -262,7 +283,6 @@ class Jogador():
         if self.f1_active:
             return
         
-        self.inventario.render()
         
         for i in range(self.lives):
             x = 20 + i * 35
@@ -275,7 +295,10 @@ class Jogador():
 
         if self.modo == 'chakra' or self.f3_active:
             self.render_chakra()
+        if len(self.pilha_conjuracao) > 0 or self.f3_active or self.modo == 'chakra':
+            self.render_spell_stack()
 
+        self.inventario.render()
         # Draw crosshair
         screen_width = rl.get_screen_width()
         screen_height = rl.get_screen_height()
@@ -301,7 +324,6 @@ class Jogador():
 
         self.show_message()
         
-
     def escolheElemento(self):
         rapido = [self.posChakra["tempo1"]<self.treshold[0], self.posChakra["tempo2"]<self.treshold[1], self.posChakra["tempo3"]<self.treshold[2]]
         if self.f3_active:
@@ -532,6 +554,55 @@ class Jogador():
         x = int(posRelativa[0]*13.5 + screen_width*0.0175)
         rl.draw_ellipse(x, y, w, h, cor)
         rl.draw_ellipse_lines(x, y, w, h, cor_borda)
+
+    def render_spell_stack(self):
+        # Constants for the spell display
+        SPELL_SIZE = 20
+        PADDING = 5
+        BORDER = 2
+        MAX_WIDTH = rl.get_screen_width() // 3  # Use 1/3 of screen width
+        
+        if not self.pilha_conjuracao:  # If stack is empty, don't draw anything
+            return
+            
+        # Calculate total width needed
+        total_spells = len(self.pilha_conjuracao)
+        total_width = (SPELL_SIZE + PADDING) * total_spells - PADDING
+        
+        # Calculate how many spells we can show
+        spells_that_fit = min(total_spells, MAX_WIDTH // (SPELL_SIZE + PADDING))
+        actual_width = (SPELL_SIZE + PADDING) * spells_that_fit - PADDING
+        
+        # Calculate starting position (centered horizontally, above inventory)
+        start_x = (rl.get_screen_width() - actual_width) // 2
+        start_y = rl.get_screen_height() - 150  # Above inventory
+        
+        # Draw background rectangle
+        rl.draw_rectangle(start_x - PADDING, start_y - PADDING, 
+                 actual_width + PADDING * 2, SPELL_SIZE + PADDING * 2, 
+                 rl.Color(40, 40, 40, self.inventario.alpha_hotbar))
+        
+        # Draw spells from right to left (newest first)
+        start_index = max(0, total_spells - spells_that_fit)
+        for i, spell in enumerate(self.pilha_conjuracao[start_index:]):
+            x = start_x + i * (SPELL_SIZE + PADDING)
+            # Draw spell box
+            particionar = spell.split(":")
+            if particionar[0] == "hand_position":
+                if len(particionar) >= 2:
+                    name = particionar[1]
+                    hand_texture = self.game.assets_loader.get_texture(self.game.assets_loader.hand_positions_path + name+".png")
+                    rl.draw_texture_pro(
+                        hand_texture,
+                        rl.Rectangle(0, 0, hand_texture.width, hand_texture.height),
+                        rl.Rectangle(x, start_y, SPELL_SIZE, SPELL_SIZE),
+                        rl.Vector2(0, 0),
+                        0,
+                        rl.WHITE
+                    )
+            else:
+                rl.draw_rectangle(x, start_y, SPELL_SIZE, SPELL_SIZE, rl.GRAY)
+            rl.draw_rectangle_lines_ex(rl.Rectangle(x, start_y, SPELL_SIZE, SPELL_SIZE),BORDER, rl.WHITE)
 
 
 
