@@ -12,6 +12,7 @@ class Controler():
             pyray.KEY_F1: "F1",
             pyray.KEY_F3: "F3",
             pyray.KEY_F5: "F5",
+            pyray.KEY_F11: "F11",
             pyray.MOUSE_BUTTON_LEFT: "LEFT_MOUSE",
             pyray.MOUSE_BUTTON_RIGHT: "RIGHT_MOUSE",
         }

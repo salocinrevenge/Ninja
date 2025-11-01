@@ -2,13 +2,13 @@ from block import Block
 import pyray as rl
 
 class Game_Chunk():
-    def __init__(self,game,x,z):
+    def __init__(self,game,x,z,max_height=16):
         assert x%16 ==0, "x não é múltiplo de 16"
         assert z%16 ==0, "z não é múltiplo de 16"
         self.game = game
         self.x = x
         self.z = z
-        self.limits = (16,16,16)
+        self.limits = (16,max_height,16)
         self.static_blocks = []
         for x in range(self.limits[0]):
             self.static_blocks.append([])
@@ -22,6 +22,18 @@ class Game_Chunk():
 
                     self.static_blocks[-1][-1].append(bloco)
                     self.update_adjacent_faces(x,y,z)
+
+    def place_block(self, x, y, z, block):
+        if y < 0:
+            return
+        if y >= self.limits[1]:
+            return "Impossible to place block above chunk height of {}".format(self.limits[1])
+        self.static_blocks[x][y][z] = block
+        self.update_adjacent_faces(x, y, z)
+
+    def remove_block(self, x, y, z):
+        self.static_blocks[x][y][z] = None
+        self.update_adjacent_faces(x, y, z)
 
     def update_adjacent_faces(self,x,y,z):
         block = self.get_block(x,y,z)

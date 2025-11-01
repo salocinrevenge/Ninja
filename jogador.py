@@ -34,6 +34,8 @@ class Jogador():
         self.can_place_block = True
         self.can_break_block = True
         self.time = 0
+        self.time_message = 0
+        self.messages = []
 
         self.pressed_move_keys = {"W":False, "A":False, "S":False, "D":False}
 
@@ -90,12 +92,12 @@ class Jogador():
                 local_x = int(bx - chunk.x)
                 local_y = int(by)
                 local_z = int(bz - chunk.z)
-                bloco = chunk.get_block(local_x, local_y, local_z)
                 if chunk.get_block(local_x, local_y, local_z) is None and not check_colision_point(self.pos, self.dims, Vector3(bx, by, bz), Vector3(1,1,1)):
                     active_faces = [True, True, True, True, True, True]
                     new_block = Block(chunk, self.game.assets_loader, "grass.png", rl.Vector3(bx, by, bz), active_faces=active_faces)
-                    chunk.static_blocks[local_x][local_y][local_z] = new_block
-                    chunk.update_adjacent_faces(local_x, local_y, local_z)
+                    ok = chunk.place_block(local_x, local_y, local_z, new_block)
+                    if ok is not None:
+                        self.messages.append((ok, 120))
 
 
     def try_break_block(self):
@@ -109,8 +111,7 @@ class Jogador():
                 local_z = int(bz - chunk.z)
                 bloco = chunk.get_block(local_x, local_y, local_z)
                 if bloco is not None:
-                    chunk.static_blocks[local_x][local_y][local_z] = None
-                    chunk.update_adjacent_faces(local_x, local_y, local_z)
+                    chunk.remove_block(local_x, local_y, local_z)
 
     def input(self,event):
         self.input_chakra(event)
@@ -182,7 +183,6 @@ class Jogador():
         self.vel.z += move.z * self.walk_speed*multiplier
 
 
-
         
         self.vel = rl.vector3_subtract(self.vel, Vector3(0, self.game.gravity, 0))
         future_x = self.pos.x + self.vel.x
@@ -207,16 +207,20 @@ class Jogador():
         self.chunck_coord = new_chunck_coord
         self.vel = rl.vector3_multiply(self.vel, Vector3(self.game.air_resistance, 1, self.game.air_resistance))
 
-
     def update(self,dt):
         self.time +=1
-
+        if self.time_message >0:
+            self.time_message -=1
+            if self.time_message ==0:
+                if len(self.messages)>0:
+                    self.messages.pop(0)
+        else:
+            if len(self.messages)>0:
+                self.message = self.messages[0][0]
+                self.time_message = self.messages[0][1]
         if self.time_invulnerable > 0:
             self.time_invulnerable -= 1
-
-        self.movement()
-        
-            
+        self.movement()            
 
     def render(self):
         if (self.time_invulnerable//10) % 2 ==0:
@@ -235,45 +239,64 @@ class Jogador():
         self.time_invulnerable = self.time_invunerability
         self.lives-=1
             
+    def show_message(self):
+        if self.time_message >0 and len(self.messages)>0:
+            font_size = 32
+            # Calculate text width to center it
+            text_width = rl.measure_text(self.messages[0][0], font_size)
+            x = rl.get_screen_width()//2 - text_width//2
+            y = rl.get_screen_height() - 250
+            # Draw black border by offsetting text
+            rl.draw_text(self.messages[0][0], x-1, y-1, font_size, rl.BLACK)
+            rl.draw_text(self.messages[0][0], x+1, y-1, font_size, rl.BLACK) 
+            rl.draw_text(self.messages[0][0], x-1, y+1, font_size, rl.BLACK)
+            rl.draw_text(self.messages[0][0], x+1, y+1, font_size, rl.BLACK)
+            # Draw main red text
+            rl.draw_text(self.messages[0][0], x, y, font_size, rl.RED)
+
     def render_hud(self):
-        if not self.f1_active:
-            for i in range(self.lives):
-                x = 20 + i * 35
-                y = 20
-                rl.draw_rectangle(x, y, 30, 30, rl.RED)
+        if self.f1_active:
+            return
+        
+        for i in range(self.lives):
+            x = 20 + i * 35
+            y = 20
+            rl.draw_rectangle(x, y, 30, 30, rl.RED)
 
-            # invulnerabilidade
-            if self.time_invulnerable>0:
-                rl.draw_text("INVULNERÁVEL", 20, 60, 25, rl.GOLD)
+        # invulnerabilidade
+        if self.time_invulnerable>0:
+            rl.draw_text("INVULNERÁVEL", 20, 60, 25, rl.GOLD)
 
-            if self.modo == 'chakra' or self.f3_active:
-                self.render_chakra()
+        if self.modo == 'chakra' or self.f3_active:
+            self.render_chakra()
 
-            # Draw crosshair
-            screen_width = rl.get_screen_width()
-            screen_height = rl.get_screen_height()
-            center_x = screen_width // 2 
-            center_y = screen_height // 2
-            size = 10
-            # Draw black border lines first
-            # Draw multiple black lines to create a thicker border
-            for offset in [-1, 0, 1]:
-                rl.draw_line(center_x - size - 1, center_y + offset, center_x + size + 1, center_y + offset, rl.BLACK)
-                rl.draw_line(center_x + offset, center_y - size - 1, center_x + offset, center_y + size + 1, rl.BLACK)
-            # Draw white crosshair on top
-            rl.draw_line(center_x - size, center_y, center_x + size, center_y, rl.WHITE)
-            rl.draw_line(center_x, center_y - size, center_x, center_y + size, rl.WHITE)
+        # Draw crosshair
+        screen_width = rl.get_screen_width()
+        screen_height = rl.get_screen_height()
+        center_x = screen_width // 2 
+        center_y = screen_height // 2
+        size = 10
+        # Draw black border lines first
+        # Draw multiple black lines to create a thicker border
+        for offset in [-1, 0, 1]:
+            rl.draw_line(center_x - size - 1, center_y + offset, center_x + size + 1, center_y + offset, rl.BLACK)
+            rl.draw_line(center_x + offset, center_y - size - 1, center_x + offset, center_y + size + 1, rl.BLACK)
+        # Draw white crosshair on top
+        rl.draw_line(center_x - size, center_y, center_x + size, center_y, rl.WHITE)
+        rl.draw_line(center_x, center_y - size, center_x, center_y + size, rl.WHITE)
 
-            if self.f3_active:
-                text = f"Position:\nX: {self.pos.x}\nY: {self.pos.y}\nZ: {self.pos.z} \
-                    \nLooking at:\nX: {self.game.camera.camera.target.x}\nY: {self.game.camera.camera.target.y}\nZ: {self.game.camera.camera.target.z}\n"
-                rl.draw_text(text, 10, 100, 20, (50,50,50,255))
+        if self.f3_active:
+            text = f"Position:\nX: {self.pos.x}\nY: {self.pos.y}\nZ: {self.pos.z} \
+                \nLooking at:\nX: {self.game.camera.camera.target.x}\nY: {self.game.camera.camera.target.y}\nZ: {self.game.camera.camera.target.z}\n"
+            rl.draw_text(text, 10, 100, 20, (50,50,50,255))
 
-                # mostra o FPS no canto superior direito
-                rl.draw_text(f"FPS: {self.game.motor.fps}", rl.get_screen_width() - 100, 10, 20, rl.RED)
+            # mostra o FPS no canto superior direito
+            rl.draw_text(f"FPS: {self.game.motor.fps}", rl.get_screen_width() - 100, 10, 20, rl.RED)
+
+        self.show_message()
+        
 
     def escolheElemento(self):
-        
         rapido = [self.posChakra["tempo1"]<self.treshold[0], self.posChakra["tempo2"]<self.treshold[1], self.posChakra["tempo3"]<self.treshold[2]]
         if self.f3_active:
             print(f"rapido: {rapido}")
@@ -290,7 +313,6 @@ class Jogador():
         else:
             raise Exception(f"Erro ao escolher elemento: {rapido}")
 
-
     def toggleChakra(self):
         if self.modo == 'mobilidade':
             self.modo = 'chakra'
@@ -300,7 +322,6 @@ class Jogador():
             self.posChakra = {"regiao": None,"tempo1": 0, "tempo2": 0, "subregiao": None, "tempo3": 0}
             self.modo = 'mobilidade'
             self.elemento = None
-
 
     def render_chakra(self):
         ALPHA = 0.7  # Define alpha value for filled circles

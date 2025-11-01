@@ -14,6 +14,7 @@ class Game_Manager():
         self.motor = motor
         self.assets_loader = Assets_Loader(self)
         self.jogador = Jogador(self)
+        self.max_height = 16
         self.create_map()
         self.camera = Camera(self, self.jogador)
         self.entities.append(self.jogador)
@@ -100,9 +101,11 @@ class Game_Manager():
         events = self.controls.get_controls()
         for event in events:
             self.jogador.input(event)
+            if event == "F11_DOWN":
+                self.motor.fullscreen_toggle()
 
     def create_chunk(self,x,z):
-        self.loaded_chunks.append(Game_Chunk(x,z))
+        self.loaded_chunks.append(Game_Chunk(x,z,max_height=self.max_height))
 
     def unload_chunk(self,x,z):
         pass
@@ -112,7 +115,7 @@ class Game_Manager():
         self.center_chunks = []
         self.loaded_chunks = dict()
 
-        self.loaded_chunks[self.jogador.chunck_coord] = Game_Chunk(self, *self.jogador.chunck_coord)
+        self.loaded_chunks[self.jogador.chunck_coord] = Game_Chunk(self, *self.jogador.chunck_coord, max_height=self.max_height)
         self.update_chunk((None, None), self.jogador.chunck_coord)
         
         self.entities = []

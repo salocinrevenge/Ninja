@@ -11,7 +11,14 @@ class Motor():
         self.UPDATE_CAP = 1.0/self.FPS_PADRAO
 
         rl.set_config_flags(rl.FLAG_WINDOW_RESIZABLE)
-        rl.init_window(1000, 700, b"Ninja")
+        scale_factor = 0.75
+        self.normal_window_dimensions = (int(1920 * scale_factor), int(1080 * scale_factor))
+        self.full_screen = True
+        rl.init_window(0, 0, b"Ninja")
+        rl.set_window_min_size(400, 300)
+        rl.is_window_fullscreen()
+        self.fullscreen_window_dimensions = (rl.get_monitor_width(0), rl.get_monitor_height(0))
+        print(self.fullscreen_window_dimensions)
         rl.set_target_fps(60)
         rl.disable_cursor()
 
@@ -77,6 +84,17 @@ class Motor():
         # Renderizar o mapa
         self.game.render()
 
+    def fullscreen_toggle(self):
+        if self.full_screen:
+            rl.set_window_size(self.normal_window_dimensions[0], self.normal_window_dimensions[1])
+            rl.set_window_position(
+                (self.fullscreen_window_dimensions[0] - self.normal_window_dimensions[0]) // 2,
+                (self.fullscreen_window_dimensions[1] - self.normal_window_dimensions[1]) // 2
+            )
+        else:
+            rl.set_window_size(self.fullscreen_window_dimensions[0], self.fullscreen_window_dimensions[1])
+            rl.set_window_position(0, 0)
+        self.full_screen = not self.full_screen
 
     def dispose(self):      # metodo chamado quando o jogo fecha
         self.game.dispose()
