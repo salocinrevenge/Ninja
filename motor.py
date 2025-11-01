@@ -16,9 +16,8 @@ class Motor():
         self.full_screen = True
         rl.init_window(0, 0, b"Ninja")
         rl.set_window_min_size(400, 300)
-        rl.is_window_fullscreen()
+        rl.toggle_fullscreen()
         self.fullscreen_window_dimensions = (rl.get_monitor_width(0), rl.get_monitor_height(0))
-        print(self.fullscreen_window_dimensions)
         rl.set_target_fps(60)
         rl.disable_cursor()
 
@@ -86,6 +85,7 @@ class Motor():
 
     def fullscreen_toggle(self):
         if self.full_screen:
+            rl.toggle_fullscreen()
             rl.set_window_size(self.normal_window_dimensions[0], self.normal_window_dimensions[1])
             rl.set_window_position(
                 (self.fullscreen_window_dimensions[0] - self.normal_window_dimensions[0]) // 2,
@@ -94,6 +94,7 @@ class Motor():
         else:
             rl.set_window_size(self.fullscreen_window_dimensions[0], self.fullscreen_window_dimensions[1])
             rl.set_window_position(0, 0)
+            rl.toggle_fullscreen()
         self.full_screen = not self.full_screen
 
     def dispose(self):      # metodo chamado quando o jogo fecha

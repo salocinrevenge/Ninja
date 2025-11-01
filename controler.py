@@ -15,6 +15,18 @@ class Controler():
             pyray.KEY_F11: "F11",
             pyray.MOUSE_BUTTON_LEFT: "LEFT_MOUSE",
             pyray.MOUSE_BUTTON_RIGHT: "RIGHT_MOUSE",
+            pyray.KEY_ONE: "KEY_ONE",
+            pyray.KEY_TWO: "KEY_TWO",
+            pyray.KEY_THREE: "KEY_THREE",
+            pyray.KEY_FOUR: "KEY_FOUR",
+            pyray.KEY_FIVE: "KEY_FIVE",
+            pyray.KEY_SIX: "KEY_SIX",
+            pyray.KEY_SEVEN: "KEY_SEVEN",
+            pyray.KEY_EIGHT: "KEY_EIGHT",
+            pyray.KEY_NINE: "KEY_NINE",
+            pyray.KEY_ZERO: "KEY_ZERO",
+            pyray.MOUSE_BUTTON_MIDDLE: "MOUSE_WHEEL_DOWN",
+            pyray.MOUSE_BUTTON_MIDDLE: "MOUSE_WHEEL_UP"
         }
         self.key_state = {value: False for value in self.key_map.values()}
 
@@ -31,4 +43,12 @@ class Controler():
                     self.actions.append(value + "_DOWN")
                 else:
                     self.actions.append(value + "_UP")
+        
+        # Check mouse wheel movement
+        wheel_move = pyray.get_mouse_wheel_move()
+        if wheel_move > 0:
+            self.actions.append("MOUSE_WHEEL_UP")
+        elif wheel_move < 0:
+            self.actions.append("MOUSE_WHEEL_DOWN")
+            
         return self.actions

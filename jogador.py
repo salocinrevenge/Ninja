@@ -4,6 +4,7 @@ import pyray as rl
 import math
 from block import Block
 from utils import check_colision_point
+from inventario import Inventario
 
 class Jogador():
 
@@ -36,6 +37,7 @@ class Jogador():
         self.time = 0
         self.time_message = 0
         self.messages = []
+        self.inventario = Inventario(jogador=self)
 
         self.pressed_move_keys = {"W":False, "A":False, "S":False, "D":False}
 
@@ -114,6 +116,7 @@ class Jogador():
                     chunk.remove_block(local_x, local_y, local_z)
 
     def input(self,event):
+        self.inventario.input(event)
         self.input_chakra(event)
         match event:
             case 'F1_DOWN':
@@ -208,6 +211,7 @@ class Jogador():
         self.vel = rl.vector3_multiply(self.vel, Vector3(self.game.air_resistance, 1, self.game.air_resistance))
 
     def update(self,dt):
+        self.inventario.update(dt)
         self.time +=1
         if self.time_message >0:
             self.time_message -=1
@@ -257,6 +261,8 @@ class Jogador():
     def render_hud(self):
         if self.f1_active:
             return
+        
+        self.inventario.render()
         
         for i in range(self.lives):
             x = 20 + i * 35

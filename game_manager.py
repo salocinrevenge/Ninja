@@ -103,6 +103,7 @@ class Game_Manager():
             self.jogador.input(event)
             if event == "F11_DOWN":
                 self.motor.fullscreen_toggle()
+                    
 
     def create_chunk(self,x,z):
         self.loaded_chunks.append(Game_Chunk(x,z,max_height=self.max_height))
