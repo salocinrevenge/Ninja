@@ -19,8 +19,9 @@ class Jogador():
         self.forward = Vector3(1,0,0)
         self.right = Vector3(0,0,1)
         self.forca_pulo = 0.4
-        self.time_invunerability = 100
+        self.time_invulnerability = 100
         self.lives = 5
+        self.f1_active = False
         self.f3_active = False
         self.yaw = 0
         self.render_distance = 2
@@ -33,6 +34,8 @@ class Jogador():
         self.can_place_block = True
         self.can_break_block = True
         self.time = 0
+
+        self.pressed_move_keys = {"W":False, "A":False, "S":False, "D":False}
 
         # chakra
         self.tempoChakra = 0
@@ -47,8 +50,6 @@ class Jogador():
     
 
     def input_chakra(self, tecla):
-        # Check pressed keys
-        print(tecla)
         match (tecla):
             case 'SHIFT_DOWN':
                 self.toggleChakra()
@@ -79,33 +80,19 @@ class Jogador():
 
     def try_place_block(self):
         block_pos = self.game.camera.get_block_looked_at()
-        print("Looking at block:", block_pos)
         if block_pos:
             bx, by, bz, face = block_pos
-            match face:
-                case "top":
-                    by += 1
-                case "bottom":
-                    by -= 1
-                case "north":
-                    bz += 1
-                case "south":
-                    bz -= 1
-                case "east":
-                    bx += 1
-                case "west":
-                    bx -= 1
+            by += {"top": 1, "bottom": -1}.get(face, 0)
+            bz += {"north": 1, "south": -1}.get(face, 0)
+            bx += {"east": 1, "west": -1}.get(face, 0)
             chunk = self.game.loaded_chunks.get((int(math.floor(bx / 16)) * 16, int(math.floor(bz / 16)) * 16))
             if chunk:
                 local_x = int(bx - chunk.x)
                 local_y = int(by)
                 local_z = int(bz - chunk.z)
-                print("Local block position:", local_x, local_y, local_z)
                 bloco = chunk.get_block(local_x, local_y, local_z)
-                print("Block at position:", bloco)
                 if chunk.get_block(local_x, local_y, local_z) is None and not check_colision_point(self.pos, self.dims, Vector3(bx, by, bz), Vector3(1,1,1)):
                     active_faces = [True, True, True, True, True, True]
-                    print("Placing block at:", bx, by, bz)
                     new_block = Block(chunk, self.game.assets_loader, "grass.png", rl.Vector3(bx, by, bz), active_faces=active_faces)
                     chunk.static_blocks[local_x][local_y][local_z] = new_block
                     chunk.update_adjacent_faces(local_x, local_y, local_z)
@@ -113,7 +100,6 @@ class Jogador():
 
     def try_break_block(self):
         block_pos = self.game.camera.get_block_looked_at()
-        print("Looking at block to break:", block_pos)
         if block_pos:
             bx, by, bz, face = block_pos
             chunk = self.game.loaded_chunks.get((int(math.floor(bx / 16)) * 16, int(math.floor(bz / 16)) * 16))
@@ -121,17 +107,16 @@ class Jogador():
                 local_x = int(bx - chunk.x)
                 local_y = int(by)
                 local_z = int(bz - chunk.z)
-                print("Local block position to break:", local_x, local_y, local_z)
                 bloco = chunk.get_block(local_x, local_y, local_z)
-                print("Block at position to break:", bloco)
                 if bloco is not None:
-                    print("Breaking block at:", bx, by, bz)
                     chunk.static_blocks[local_x][local_y][local_z] = None
                     chunk.update_adjacent_faces(local_x, local_y, local_z)
 
     def input(self,event):
         self.input_chakra(event)
         match event:
+            case 'F1_DOWN':
+                self.f1_active = not self.f1_active
             case 'F3_DOWN':
                 self.f3_active = not self.f3_active
             case 'F5_DOWN':
@@ -153,20 +138,18 @@ class Jogador():
                     self.can_break_block = False
             case 'LEFT_MOUSE_UP':
                 self.can_break_block = True
+            case 'A_DOWN' | 'S_DOWN' | 'D_DOWN' | 'W_DOWN':
+                self.pressed_move_keys[event.split('_')[0]] = True
+            case 'A_UP' | 'S_UP' | 'D_UP' | 'W_UP':
+                self.pressed_move_keys[event.split('_')[0]] = False
 
-    def update(self,dt):
-        self.time +=1
-
-        if self.time_invulnerable > 0:
-            self.time_invulnerable -= 1
-
-        # --- Movimento do jogador ---
+    def movement(self):
         if self.jumping and self.on_ground:
             self.vel = rl.vector3_add(self.vel, Vector3(0, self.forca_pulo, 0)) 
             self.on_ground = False
 
         move = Vector3(0, 0, 0)
-        if rl.is_key_down(rl.KEY_W):
+        if self.pressed_move_keys["W"]:
             if self.last_W <= 0:
                 self.last_W = self.last_W_reset
             move.x += self.forward.x
@@ -178,14 +161,14 @@ class Jogador():
             if self.running:
                 self.running = False
             self.last_W -= 1
-            
-        if rl.is_key_down(rl.KEY_S):
+
+        if self.pressed_move_keys["S"]:
             move.x -= self.forward.x
             move.z -= self.forward.z
-        if rl.is_key_down(rl.KEY_A):
+        if self.pressed_move_keys["A"]:
             move.x += self.right.x
             move.z += self.right.z
-        if rl.is_key_down(rl.KEY_D):
+        if self.pressed_move_keys["D"]:
             move.x -= self.right.x
             move.z -= self.right.z
 
@@ -223,6 +206,16 @@ class Jogador():
             self.game.update_chunk(self.chunck_coord, new_chunck_coord)
         self.chunck_coord = new_chunck_coord
         self.vel = rl.vector3_multiply(self.vel, Vector3(self.game.air_resistance, 1, self.game.air_resistance))
+
+
+    def update(self,dt):
+        self.time +=1
+
+        if self.time_invulnerable > 0:
+            self.time_invulnerable -= 1
+
+        self.movement()
+        
             
 
     def render(self):
@@ -243,43 +236,47 @@ class Jogador():
         self.lives-=1
             
     def render_hud(self):
-        for i in range(self.lives):
-            x = 20 + i * 35
-            y = 20
-            rl.draw_rectangle(x, y, 30, 30, rl.RED)
+        if not self.f1_active:
+            for i in range(self.lives):
+                x = 20 + i * 35
+                y = 20
+                rl.draw_rectangle(x, y, 30, 30, rl.RED)
 
-        # invulnerabilidade
-        if self.time_invulnerable>0:
-            rl.draw_text("INVULNERÁVEL", 20, 60, 25, rl.GOLD)
+            # invulnerabilidade
+            if self.time_invulnerable>0:
+                rl.draw_text("INVULNERÁVEL", 20, 60, 25, rl.GOLD)
 
-        rl.draw_text("F5 alterna visão", 10, 100, 20, rl.GRAY)
+            if self.modo == 'chakra' or self.f3_active:
+                self.render_chakra()
 
-        self.render_chakra()
+            # Draw crosshair
+            screen_width = rl.get_screen_width()
+            screen_height = rl.get_screen_height()
+            center_x = screen_width // 2 
+            center_y = screen_height // 2
+            size = 10
+            # Draw black border lines first
+            # Draw multiple black lines to create a thicker border
+            for offset in [-1, 0, 1]:
+                rl.draw_line(center_x - size - 1, center_y + offset, center_x + size + 1, center_y + offset, rl.BLACK)
+                rl.draw_line(center_x + offset, center_y - size - 1, center_x + offset, center_y + size + 1, rl.BLACK)
+            # Draw white crosshair on top
+            rl.draw_line(center_x - size, center_y, center_x + size, center_y, rl.WHITE)
+            rl.draw_line(center_x, center_y - size, center_x, center_y + size, rl.WHITE)
 
-        # Draw crosshair
-        screen_width = rl.get_screen_width()
-        screen_height = rl.get_screen_height()
-        center_x = screen_width // 2 
-        center_y = screen_height // 2
-        size = 10
-        # Draw black border lines first
-        # Draw multiple black lines to create a thicker border
-        for offset in [-1, 0, 1]:
-            rl.draw_line(center_x - size - 1, center_y + offset, center_x + size + 1, center_y + offset, rl.BLACK)
-            rl.draw_line(center_x + offset, center_y - size - 1, center_x + offset, center_y + size + 1, rl.BLACK)
-        # Draw white crosshair on top
-        rl.draw_line(center_x - size, center_y, center_x + size, center_y, rl.WHITE)
-        rl.draw_line(center_x, center_y - size, center_x, center_y + size, rl.WHITE)
+            if self.f3_active:
+                text = f"Position:\nX: {self.pos.x}\nY: {self.pos.y}\nZ: {self.pos.z} \
+                    \nLooking at:\nX: {self.game.camera.camera.target.x}\nY: {self.game.camera.camera.target.y}\nZ: {self.game.camera.camera.target.z}\n"
+                rl.draw_text(text, 10, 100, 20, (50,50,50,255))
 
-        if self.f3_active:
-            text = f"Position:\nX: {self.pos.x}\nY: {self.pos.y}\nZ: {self.pos.z} \
-                \nLooking at:\nX: {self.game.camera.camera.target.x}\nY: {self.game.camera.camera.target.y}\nZ: {self.game.camera.camera.target.z}\n"
-            rl.draw_text(text, 10, 140, 20, (50,50,50,255))
+                # mostra o FPS no canto superior direito
+                rl.draw_text(f"FPS: {self.game.motor.fps}", rl.get_screen_width() - 100, 10, 20, rl.RED)
 
     def escolheElemento(self):
         
         rapido = [self.posChakra["tempo1"]<self.treshold[0], self.posChakra["tempo2"]<self.treshold[1], self.posChakra["tempo3"]<self.treshold[2]]
-        print(f"rapido: {rapido}")
+        if self.f3_active:
+            print(f"rapido: {rapido}")
         if rapido == [True, True, True]:
             self.elemento = "relampago"
         elif rapido == [True, True, False]:
@@ -298,7 +295,8 @@ class Jogador():
         if self.modo == 'mobilidade':
             self.modo = 'chakra'
         else:
-            print(f"tempo pressionado primeiro: {round(self.posChakra['tempo1'], 3)} tempo entre pressionamentos: {round(self.posChakra['tempo2'],3)} tempo pressionado segundo: {round(self.posChakra['tempo3'],3)}")
+            if self.f3_active:
+                print(f"tempo pressionado primeiro: {round(self.posChakra['tempo1'], 3)} tempo entre pressionamentos: {round(self.posChakra['tempo2'],3)} tempo pressionado segundo: {round(self.posChakra['tempo3'],3)}")
             self.posChakra = {"regiao": None,"tempo1": 0, "tempo2": 0, "subregiao": None, "tempo3": 0}
             self.modo = 'mobilidade'
             self.elemento = None

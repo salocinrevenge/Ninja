@@ -76,8 +76,6 @@ class Motor():
 
         # Renderizar o mapa
         self.game.render()
-        # mostra o FPS no canto superior direito
-        rl.draw_text(f"FPS: {self.fps}", rl.get_screen_width() - 100, 10, 20, rl.RED)
 
 
     def dispose(self):      # metodo chamado quando o jogo fecha
