@@ -5,6 +5,7 @@ import math
 from block import Block
 from utils import check_colision_point
 from inventario import Inventario
+from spell import Spell
 
 class Jogador():
 
@@ -134,13 +135,14 @@ class Jogador():
             case 'RIGHT_MOUSE_DOWN':
                 if self.modo == 'chakra':
                     if self.posChakra['regiao'] != None:
-                        self.pilha_conjuracao.append(f"alma:{self.posChakra['regiao']}:{self.posChakra['subregiao']}:{self.elemento}")
+                        spell = Spell(caster=self, body=self.posChakra['regiao'], subbody=self.posChakra['subregiao'], element= self.elemento)
+                        self.pilha_conjuracao.append(spell)
                         self.elemento = None
                         self.posChakra = {"regiao": None,"tempo1": 0, "tempo2": 0, "subregiao": None, "tempo3": 0}
                     else:
                         hp = self.inventario.get_selected_hand_position()
                         if hp is not None:
-                            self.pilha_conjuracao.append(f"hand_position:{hp}")
+                            self.pilha_conjuracao.append(Spell(caster=self,hand_position=hp))
                     print(f"Pilha de conjuracao: {self.pilha_conjuracao}")
                 elif self.modo == 'mobilidade' and self.can_place_block:
                     self.try_place_block()
@@ -577,34 +579,7 @@ class Jogador():
         start_index = max(0, total_spells - spells_that_fit)
         for i, spell in enumerate(self.pilha_conjuracao[start_index:]):
             x = start_x + i * (SPELL_SIZE + PADDING)
-            # Draw spell box
-            particionar = spell.split(":")
-            if particionar[0] == "hand_position":
-                if len(particionar) >= 2:
-                    name = particionar[1]
-                    hand_texture = self.game.assets_loader.get_texture(self.game.assets_loader.hand_positions_path + name+".png")
-                    rl.draw_texture_pro(
-                        hand_texture,
-                        rl.Rectangle(0, 0, hand_texture.width, hand_texture.height),
-                        rl.Rectangle(x, start_y, SPELL_SIZE, SPELL_SIZE),
-                        rl.Vector2(0, 0),
-                        0,
-                        rl.WHITE
-                    )
-            elif particionar[0] == "alma":
-
-                body_texture = self.game.assets_loader.get_texture(self.game.assets_loader.body_positions_path + self.game.assets_loader.bodies[particionar[1]][particionar[2]]+".png")
-                ok, cor = self.game.assets_loader.color_element(particionar[3])
-                rl.draw_texture_pro(
-                    body_texture,
-                    rl.Rectangle(0, 0, body_texture.width, body_texture.height),
-                    rl.Rectangle(x, start_y, SPELL_SIZE, SPELL_SIZE),
-                    rl.Vector2(0, 0),
-                    0,
-                    rl.Color(*cor)
-                )
-            else:
-                rl.draw_rectangle(x, start_y, SPELL_SIZE, SPELL_SIZE, rl.GRAY)
+            spell.render_rune(x,start_y,SPELL_SIZE)
             rl.draw_rectangle_lines_ex(rl.Rectangle(x, start_y, SPELL_SIZE, SPELL_SIZE),BORDER, rl.WHITE)
 
 

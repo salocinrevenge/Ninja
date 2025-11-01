@@ -1,0 +1,64 @@
+{
+    "move": {
+        "condense": "spin"
+    },
+    "spin": {
+        "invert": "counter-spin"
+    },
+    "condense": {
+        "expand": "create"
+    },
+    "terra":
+    {
+        "fogo": "lava",
+        "agua": "lama"
+
+    },
+    "lava":
+    {
+        "agua": "pedra",
+        "relampago": "metal"
+    },
+    "fogo":
+    {
+        "relampago": "plasma",
+        "agua": "vapor"
+    },
+    "vapor":
+    {
+        "ar":"nuvem"
+    },
+    "ar":
+    {
+        "move":"vento",
+        "vapor":"nuvem"
+    },
+    "pedra":
+    {
+        "vento":"areia"
+    },
+    "areia": 
+    {
+        "fogo": "vidro",
+        "relampago":"vidro",
+        "plama":"vidro"
+    },
+    "lama":
+    {
+        "relampago": "vida"
+    },
+    "vida":
+    {
+        "terra": "planta",
+        "agua": "cura"
+    },
+    "planta":
+    {
+        "terra": "madeira"
+    },
+    "cura":
+    {
+        "invert": "veneno"
+    }
+    
+}
