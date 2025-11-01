@@ -28,6 +28,7 @@ class Jogador():
         self.last_W = self.last_W_reset
         self.running = False
         self.third_person = False
+        self.eye_height = 1.75
 
         self.time = 0
 
@@ -39,6 +40,7 @@ class Jogador():
         self.treshold = [0.11, 0.12, 0.11]
         self.treshold = [10, 12, 10]
         self.vezesUsado = {"agua": 0, "fogo": 0, "terra": 0, "vento": 0, "relampago": 0, "chakra": 0}
+        self.jumping = False
 
     def input_chakra(self, tecla):
         # Check pressed keys
@@ -48,6 +50,9 @@ class Jogador():
                 self.toggleChakra()
 
             case 'A_DOWN' | 'S_DOWN' | 'D_DOWN':
+                if self.elemento != None:
+                    self.elemento = None
+                    self.posChakra = {"regiao": None,"tempo1": 0, "tempo2": 0, "subregiao": None, "tempo3": 0}
                 if self.modo == 'chakra' and self.elemento == None:
                     tempoAntes = self.tempoChakra
                     self.tempoChakra = self.time
@@ -70,10 +75,16 @@ class Jogador():
 
     def input(self,event):
         self.input_chakra(event)
-        if event == 'F3_DOWN':
-            self.f3_active = not self.f3_active
-        if event == 'F5_DOWN':
-            self.third_person = not self.third_person
+        match event:
+            case 'F3_DOWN':
+                self.f3_active = not self.f3_active
+            case 'F5_DOWN':
+                self.third_person = not self.third_person
+            case 'SPACE_DOWN':
+                if self.on_ground:
+                    self.jumping = True
+            case 'SPACE_UP':
+                self.jumping = False
 
     def update(self,dt):
         self.time +=1
@@ -82,6 +93,10 @@ class Jogador():
             self.time_invulnerable -= 1
 
         # --- Movimento do jogador ---
+        if self.jumping and self.on_ground:
+            self.vel = rl.vector3_add(self.vel, Vector3(0, self.forca_pulo, 0)) 
+            self.on_ground = False
+
         move = Vector3(0, 0, 0)
         if rl.is_key_down(rl.KEY_W):
             if self.last_W <= 0:
@@ -115,10 +130,7 @@ class Jogador():
         self.vel.x += move.x * self.walk_speed*multiplier
         self.vel.z += move.z * self.walk_speed*multiplier
 
-        # --- Pulo ---
-        if rl.is_key_pressed(rl.KEY_SPACE) and self.on_ground:
-            self.vel = rl.vector3_add(self.vel, Vector3(0, self.forca_pulo, 0)) 
-            self.on_ground = False
+
 
         
         self.vel = rl.vector3_subtract(self.vel, Vector3(0, self.game.gravity, 0))
@@ -149,8 +161,20 @@ class Jogador():
             block_pos = self.game.camera.get_block_looked_at()
             print("Looking at block:", block_pos)
             if block_pos:
-                bx, by, bz = block_pos
-                by+=1
+                bx, by, bz, face = block_pos
+                match face:
+                    case "top":
+                        by += 1
+                    case "bottom":
+                        by -= 1
+                    case "north":
+                        bz += 1
+                    case "south":
+                        bz -= 1
+                    case "east":
+                        bx += 1
+                    case "west":
+                        bx -= 1
                 chunk = self.game.loaded_chunks.get((int(math.floor(bx / 16)) * 16, int(math.floor(bz / 16)) * 16))
                 if chunk:
                     local_x = int(bx - chunk.x)
@@ -201,7 +225,7 @@ class Jogador():
         screen_width = rl.get_screen_width()
         screen_height = rl.get_screen_height()
         center_x = screen_width // 2 
-        center_y = screen_height // 2 -100
+        center_y = screen_height // 2
         size = 10
         # Draw black border lines first
         # Draw multiple black lines to create a thicker border

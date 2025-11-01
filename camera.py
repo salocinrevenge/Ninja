@@ -20,7 +20,7 @@ class Camera():
         mouse_delta = rl.get_mouse_delta()
         self.camera_yaw -= mouse_delta.x * 0.003
         self.camera_pitch -= mouse_delta.y * 0.003
-        self.camera_pitch = max(-1.5, min(1.5, self.camera_pitch)) #1.2 original
+        self.camera_pitch = max(-1.570775, min(1.570775, self.camera_pitch)) #1.2 original
 
         self.dir_x = math.sin(self.camera_yaw) * math.cos(self.camera_pitch)
         self.dir_y = math.sin(self.camera_pitch)
@@ -36,39 +36,31 @@ class Camera():
                                  -self.dir_z * self.camera_distance)
             self.camera.position = rl.Vector3(
                 self.player.pos.x + cam_offset.x,
-                self.player.pos.y + self.player.dims.y + cam_offset.y,
+                self.player.pos.y + self.player.eye_height + cam_offset.y,
                 self.player.pos.z + cam_offset.z
             )
         else:
-            self.camera.position = rl.Vector3(self.player.pos.x, self.player.pos.y + self.player.dims.y, self.player.pos.z)
+            self.camera.position = rl.Vector3(self.player.pos.x, self.player.pos.y + self.player.eye_height, self.player.pos.z)
 
 
         self.camera.target = rl.Vector3(
             self.player.pos.x + self.dir_x,
-            self.player.pos.y + 1.5 + self.dir_y,
+            self.player.pos.y + self.player.eye_height + self.dir_y,
             self.player.pos.z + self.dir_z
         )
         # self.camera.position = rl.Vector3(0, 10, 0) # debug camera no teto
-
-    def get_block_looked_at_old(self, max_distance=5):
-
-        step = 0.1
-        for d in range(int(max_distance / step)):
-            check_x = self.camera.position.x + self.dir_x * d * step
-            check_y = self.camera.position.y + self.dir_y * d * step
-            check_z = self.camera.position.z + self.dir_z * d * step
-            if self.game.check_collision_with_blocks(check_x, check_y, check_z, rl.Vector3(0, 0, 0)):
-                return (int(math.floor(check_x)), int(math.floor(check_y)+(self.player.dims.y-1)), int(math.floor(check_z)))
-        return None
 
     def get_block_looked_at(self, max_distance=5):
         """
         Retorna o bloco que o jogador está olhando, até uma distância máxima.
         Usa raycast em grade (3D DDA) como o Minecraft.
         """
-
-        # Posição inicial do raio (ponto de visão da câmera)
-        x, y, z = self.camera.position.x, self.camera.position.y, self.camera.position.z
+        # Posição inicial do raio (centro da tela/target da câmera)
+        x = self.player.pos.x
+        y = self.player.pos.y + self.player.eye_height  # 1.5 é a altura dos olhos
+        z = self.player.pos.z
+        
+        # Direção do raio (igual à direção da câmera)
         dx, dy, dz = self.dir_x, self.dir_y, self.dir_z
 
         # Bloco atual (grade inteira)
@@ -93,36 +85,48 @@ class Camera():
         t_max_y = next_boundary(y, dy, by)
         t_max_z = next_boundary(z, dz, bz)
 
-        # Distância entre cruzamentos consecutivos de blocos (em "tempo de raio")
+        # Distância entre cruzamentos consecutivos de blocos
         t_delta_x = abs(1 / dx) if dx != 0 else float('inf')
         t_delta_y = abs(1 / dy) if dy != 0 else float('inf')
         t_delta_z = abs(1 / dz) if dz != 0 else float('inf')
 
-        # Quantos blocos podemos atravessar no raio máximo
-        max_steps = int(max_distance * 2)  # fator 2 só pra garantir um alcance suave
+        max_steps = int(max_distance * 2)
+
+        # Se o jogador começar dentro de um bloco sólido, detectamos isso primeiro.
+        if self.game.check_collision_with_blocks(bx, by, bz, None, debug=True):
+            # Estamos dentro do bloco inicial — não há face definida
+            return (bx, by, bz, None)
 
         for _ in range(max_steps):
-            # --- verifica se há bloco sólido neste voxel ---
-            if self.game.check_collision_with_blocks(bx, by, bz, None, debug=True):
-                print("Block found at:", bx, by, bz)
-                # ↑ função hipotética: retorna True se há um bloco sólido nessa posição (não ar/água)
-                return (bx, by, bz)
-
-            # --- avança para o próximo voxel cruzado ---
+            # Determina qual eixo será atravessado em seguida (menor t_max)
             if t_max_x < t_max_y and t_max_x < t_max_z:
                 bx += step_x
+                last_axis = 'x'
                 t_max_x += t_delta_x
             elif t_max_y < t_max_z:
                 by += step_y
+                last_axis = 'y'
                 t_max_y += t_delta_y
             else:
                 bz += step_z
+                last_axis = 'z'
                 t_max_z += t_delta_z
 
-            # --- se passou do alcance máximo, encerra ---
+            # Distância percorrida até o ponto atual do raio
             distance = min(t_max_x, t_max_y, t_max_z)
             if distance > max_distance:
                 break
+
+            # Checa colisão no bloco que acabamos de entrar
+            if self.game.check_collision_with_blocks(bx, by, bz, None, debug=True):
+                # Determina a face com base no último eixo atravessado e no sinal do passo
+                if last_axis == 'x':
+                    face = 'west' if step_x > 0 else 'east'
+                elif last_axis == 'y':
+                    face = 'bottom' if step_y > 0 else 'top'
+                else:  # 'z'
+                    face = 'south' if step_z > 0 else 'north'
+                return (bx, by, bz, face)
 
         return None
 

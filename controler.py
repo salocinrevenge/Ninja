@@ -26,6 +26,4 @@ class Controler():
                     self.actions.append(value + "_DOWN")
                 else:
                     self.actions.append(value + "_UP")
-        if len(self.actions) > 0:
-            print("getting controls: ", self.actions)
         return self.actions

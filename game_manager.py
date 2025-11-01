@@ -50,6 +50,11 @@ class Game_Manager():
         for proj in self.projectiles:
             proj.render()
 
+        looked_block = self.camera.get_block_looked_at()
+        if looked_block:
+            bx, by, bz, face = looked_block
+            rl.draw_cube(Vector3(bx + 0.5, by + 0.5, bz + 0.5), 1, 1, 1, rl.Color(255, 255, 255, 51))  # White with 20% opacity (51/255)
+
         rl.end_mode_3d()
 
         self.jogador.render_hud()
