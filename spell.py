@@ -23,7 +23,7 @@ class Spell:
         # Render em 3D no mundo
         # Get color from properties, default to white if not present
         color = rl.Color(*self.game.assets_loader.elements_properities.get(self.element, 'None')["cor"],)
-        rl.draw_sphere(self.pos, 0.5, color)
+        rl.draw_sphere(self.pos, 0.1*self.properties.get("mass", 0.5), color)
         pass
 
     def update(self, dt):
@@ -148,9 +148,11 @@ class Spell:
         rl.draw_rectangle(x, y, SPELL_SIZE, SPELL_SIZE, rl.GRAY)        
 
     def cast(self):
+        self.pos = rl.Vector3(self.caster.pos.x, self.caster.pos.y+self.caster.casting_height, self.caster.pos.z)
         self.vel = rl.vector3_normalize(self.caster.target_dir)
         self.vel = rl.vector3_scale(self.vel, self.properties.get("velocity", 0))
-        self.caster.game.add_spell(self)
+        if self.properties.get("mass", 0) > 0:
+            self.caster.game.add_spell(self)
 
     def action(self, pilha_conjuracao):
         if self.element:
