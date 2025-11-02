@@ -125,7 +125,7 @@ class Assets_Loader():
     def load_recipes(self):
         recipes_path = "assets/recipes.json"
         with open(recipes_path, "r", encoding="utf-8") as f:
-            self.load_recipes = json.load(f)
+            self.loaded_recipes = json.load(f)
 
     def color_element(self, element):
         if element in self.elements_properities:

@@ -1,6 +1,36 @@
 {
+    "up": {
+    },
+    "down": {
+    },
+    "move": {
+        "velocity": 10
+    },
+    "stop": {
+        "velocity": 0,
+        "exo": 0,
+        "temperature": -15
+    },
+    "expand": {
+        "exo": 10,
+        "temperature": -5
+    },
+    "condense": {
+        "exo": -10,
+        "temperature": 5
+    },
     "double": {
         "multipling": 2
+    },
+    "unite": {
+        
+    },
+    "divide": {
+    },
+    "invert": {
+    },
+    "matter": {
+        "body": 1
     }
-
+    
 }

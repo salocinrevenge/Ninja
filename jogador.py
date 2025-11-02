@@ -180,8 +180,20 @@ class Jogador():
                     self.pilha_conjuracao.append(copy.copy(self.pilha_conjuracao[-1]))
                 return
             if self.pilha_conjuracao[-1].hand_position:
-                self.pilha_conjuracao[-1].double_all_properties()
+                self.pilha_conjuracao[-1].multiply_all_properties(2)
                 return
+            return
+        if spell.hand_position == "invert":
+            self.pilha_conjuracao[-1].multiply_all_properties(-1)
+            return
+        if spell.hand_position == "unite":
+            if len(self.pilha_conjuracao) < 2:
+                return
+            if self.pilha_conjuracao[-1].element and self.pilha_conjuracao[-2].element:
+                self.pilha_conjuracao[-2].merge(self.pilha_conjuracao.pop())
+                return
+        if spell.hand_position and self.pilha_conjuracao[-1].element:
+            self.pilha_conjuracao[-1].merge(spell)
             return
         self.pilha_conjuracao[-1].merge(spell)
         self.activate_spell()
