@@ -5,6 +5,7 @@ from camera import Camera
 from controler import Controler
 from game_chunk import Game_Chunk
 from assets_loader import Assets_Loader
+from block import Block
 import random
 import math
 import pyray as rl
@@ -152,6 +153,8 @@ class Game_Manager():
 
     def check_collision_with_blocks(self, x, y, z, dims, debug = False):
         chunk = self.loaded_chunks.get((int(math.floor(x / 16)) * 16, int(math.floor(z / 16)) * 16))
+        if chunk is None:
+            return False
         if dims == None:
             local_x = int(x - chunk.x)
             local_y = int(y)
@@ -184,6 +187,15 @@ class Game_Manager():
 
     def add_spell(self, spell):
         self.entities.append(spell)
-        
+
+    def add_block(self, x, y, z, block_name):
+        chunk_coord = (int(math.floor(x / 16)) * 16, int(math.floor(z / 16)) * 16)
+        chunk = self.loaded_chunks.get(chunk_coord)
+        if chunk:
+            local_x = int(x - chunk.x)
+            local_y = int(y)
+            local_z = int(z - chunk.z)
+            block = Block(self, self.assets_loader, block_name, Vector3(x, y, z))
+            chunk.place_block(local_x, local_y, local_z, block)
 
 

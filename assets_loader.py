@@ -8,6 +8,7 @@ class Assets_Loader():
         self.models_loaded = dict()
         self.textures_loaded = dict()
         self.meshes_loaded = dict()
+        self.blocks_path = "assets/blocks/"
         self.hand_positions_path = "assets/hand_positions/"
         self.body_positions_path = "assets/body_positions/"
         self.bodies = {"A": {"None": "head", "A": "sub/brain", "S": "sub/eye", "D":"sub/nose_mouth"}, "S": {"None": "body", "A": "sub/lung", "S": "sub/arm", "D":"sub/hand"}, "D": {"None": "legs", "A": "sub/abdomen", "S": "sub/leg", "D":"sub/foot"}}
@@ -21,13 +22,16 @@ class Assets_Loader():
         self.models_loaded[name] = rl.load_model(name.encode('utf-8'))
         return self.models_loaded[name]
     
+    def get_block_texture(self,name):
+        return self.get_texture(self.blocks_path + name + ".png")
+
     def get_texture(self,name):
         if name in self.textures_loaded.keys():
             return self.textures_loaded[name]
         self.textures_loaded[name] = rl.load_texture_from_image(rl.load_image(name.encode('utf-8')))
         return self.textures_loaded[name]
     
-    def get_model_cube(self, active_faces, name):
+    def get_model_block(self, active_faces, name):
         # active faces is a list of 6 booleans, transforme in a iteger
         key = 0
         for i in range(6):
@@ -38,7 +42,7 @@ class Assets_Loader():
             return self.models_loaded[key_name]
         mesh = self.get_mesh(active_faces)
         model = rl.load_model_from_mesh(mesh)
-        model.materials[0].maps[rl.MATERIAL_MAP_DIFFUSE].texture = self.get_texture(name)
+        model.materials[0].maps[rl.MATERIAL_MAP_DIFFUSE].texture = self.get_block_texture(name)
         self.models_loaded[key_name] = model
         return self.models_loaded[key_name]
 

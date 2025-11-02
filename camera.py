@@ -49,6 +49,7 @@ class Camera():
             self.player.pos.z + self.dir_z
         )
         self.player.target_dir = rl.Vector3(self.dir_x, self.dir_y, self.dir_z)
+        self.player.yaw = self.camera_yaw
         # self.camera.position = rl.Vector3(0, 10, 0) # debug camera no teto
 
     def get_block_looked_at(self, max_distance=10):

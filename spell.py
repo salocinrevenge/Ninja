@@ -1,5 +1,6 @@
 import pyray as rl
 import copy
+import math
 
 class Spell:
     def __init__(self, caster, body = None, subbody = None, element = None, hand_position = None, properties = None):
@@ -10,6 +11,7 @@ class Spell:
         self.element = element
         self.hand_position = hand_position
         self.ceil_values = 1024
+        self.time_alive = 0
         self.alive = True
         self.pos = rl.Vector3(caster.pos.x, caster.pos.y+caster.casting_height, caster.pos.z)
         self.vel = rl.Vector3(0,0,0)
@@ -22,7 +24,7 @@ class Spell:
     def render(self):
         # Render em 3D no mundo
         # Get color from properties, default to white if not present
-        color = rl.Color(*self.game.assets_loader.elements_properities.get(self.element, 'None')["cor"],)
+        color = rl.Color(*self.properties["cor"],)
         rl.draw_sphere(self.pos, 0.1*self.properties.get("mass", 0.5), color)
         pass
 
@@ -33,8 +35,10 @@ class Spell:
             self.pos.y + self.vel.y * dt,
             self.pos.z + self.vel.z * dt
         )
-        # Verifica colisao com o mundo ou entidades
-        # Se colidir, aplicar efeitos e definir self.alive = False
+        self.time_alive += 1
+        print("Spell age:", self.properties.get("age", 100), "Current time alive:", self.time_alive)
+        if self.time_alive >= self.properties.get("age", 100):
+            self.alive = False
         pass
 
     def copy(self):
@@ -50,7 +54,6 @@ class Spell:
     def add_native_atributes(self):
         if self.hand_position:
             new_properties = self.caster.game.assets_loader.hand_positions_properties.get(self.hand_position, None)
-            print("Hand position properties for '{}': {}".format(self.hand_position, new_properties))
             for key, value in new_properties.items():
                 self.add_property(key, value)
         elif self.element:
@@ -99,14 +102,15 @@ class Spell:
         print("Multiplied spell properties:", self.properties)
 
     def add_property(self, property, value):
-        if not (type(value) == int or type(value) == float):
-            return
         if property not in self.properties:
             self.properties[property] = 0
-        self.properties[property] += value
-        if self.properties[property] > self.ceil_values:
-            self.properties[property] = self.ceil_values
-            self.caster.messages.append(("Spell property '{}' reached maximum value of {}".format(property, self.ceil_values), 120))
+        if (type(value) == int or type(value) == float):
+            self.properties[property] += value
+            if self.properties[property] > self.ceil_values:
+                self.properties[property] = self.ceil_values
+                self.caster.messages.append(("Spell property '{}' reached maximum value of {}".format(property, self.ceil_values), 120))
+        else:
+            self.properties[property] = value
 
     def render_rune(self, x,y,SPELL_SIZE):
         if self.hand_position:
@@ -147,12 +151,73 @@ class Spell:
 
         rl.draw_rectangle(x, y, SPELL_SIZE, SPELL_SIZE, rl.GRAY)        
 
+    def create_wall(self, distance=5):
+        # Get direction vector (normalized)
+        direction = rl.Vector3(math.sin(self.caster.yaw), 0, math.cos(self.caster.yaw))
+        block_pos = rl.vector3_add(self.pos, rl.vector3_scale(direction, distance))
+        # parte inteira
+        block_pos = rl.Vector3(int(block_pos.x-0.5), int(block_pos.y), int(block_pos.z-0.5))
+
+
+        def find_first_filled_below(x, y, z):
+            check_y = y
+            max_lookdown = 10
+            while check_y >= y - max_lookdown:
+                check_block = self.game.check_collision_with_blocks(x, check_y, z, None)
+                if check_block:
+                    return check_y
+                check_y -= 1
+            return -1
+
+        linha = 1
+        blocos_erguer = []
+        reveza = -1
+        yaw = self.caster.yaw
+
+
+        # Snap yaw to nearest axis if close enough
+        threshold = math.pi / 32
+        nearest_axis = round(yaw / (math.pi / 2)) * (math.pi / 2)
+        if abs(yaw - nearest_axis) < threshold:
+            yaw = nearest_axis
+
+        while linha <= self.properties.get("size", 1)+1:
+            target_direction = rl.Vector3(reveza*math.cos(yaw), 0, (-reveza)*math.sin(yaw))
+            target_pos = rl.vector3_add(block_pos, rl.vector3_scale(target_direction, linha//2))
+            target_pos = rl.Vector3(int(target_pos.x), int(target_pos.y), int(target_pos.z))
+            y = find_first_filled_below(target_pos.x, target_pos.y, target_pos.z)+1
+            if y != -1:
+                blocos_erguer.append(rl.Vector3(target_pos.x, y, target_pos.z))
+            reveza *= -1
+            linha += 1
+
+        for _ in range(self.properties.get("vertical", 1)):
+            new_blocos_erguer = []
+            for bloco in blocos_erguer:
+                self.game.add_block(bloco.x, bloco.y, bloco.z, "dirt")
+                new_blocos_erguer.append(rl.Vector3(bloco.x, bloco.y+1, bloco.z))
+            blocos_erguer = new_blocos_erguer
+
+        # self.game.add_block(block_pos.x, block_pos.y, block_pos.z, "dirt")
+
+
     def cast(self):
         self.pos = rl.Vector3(self.caster.pos.x, self.caster.pos.y+self.caster.casting_height, self.caster.pos.z)
         self.vel = rl.vector3_normalize(self.caster.target_dir)
         self.vel = rl.vector3_scale(self.vel, self.properties.get("velocity", 0))
+        self.alive = True
+        self.idade = 0
         if self.properties.get("mass", 0) > 0:
-            self.caster.game.add_spell(self)
+            if self.body == "D" and self.subbody == "D":
+                print("Creating projectile spell...")
+                if self.properties.get("shape", None):
+                    print("Creating projectile spell...")
+                    if self.properties["shape"] == "line":
+                        print("Creating projectile spell...")
+                        self.create_wall()
+            else:
+                self.caster.game.add_spell(self)
+
 
     def action(self, pilha_conjuracao):
         if self.element:
@@ -172,6 +237,8 @@ class Spell:
                 return
 
         # se nada ativou, mesclar com o ultimo feitico na pilha
+        if len(pilha_conjuracao) == 0:
+            return
         pilha_conjuracao[-1].merge(self)
 
         if pilha_conjuracao[-1].element:    # se o ultimo feitico agora eh um elemento, acaba a cadeia
