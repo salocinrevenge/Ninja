@@ -1,66 +1,82 @@
 {
     "fogo": {
         "cor": [255, 0, 0, 255],
-        "age": 100
+        "fixed_age": 100,
+        "damage": 5
     },
     "agua": {
         "cor": [0, 0, 255, 255],
-        "age": 1000
+        "fixed_age": 1000,
+        "damage": 2
     },
     "ar": {
         "cor": [0, 255, 0, 255],
-        "age": 100
+        "fixed_age": 100,
+        "damage": 0
     },
     "vento": {
         "cor": [100, 255, 100, 255],
-        "age": 100
+        "fixed_age": 100,
+        "damage": 1
     },
     "relampago": {
         "cor": [150, 0, 200, 255],
-        "age": 15
+        "fixed_age": 15,
+        "damage": 10
     },
     "terra": {
         "cor": [255, 122, 0, 255],
-        "age": 20000
+        "fixed_age": 20000,
+        "damage": 3
     },
     "areia": {
         "cor": [255, 255, 0, 255],
-        "age": 1000
+        "fixed_age": 1000,
+        "damage": 1
     },
     "vidro": {
         "cor": [255, 255, 255, 255],
-        "age": 20000
+        "fixed_age": 20000,
+        "damage": 2
     },
     "pedra": {
         "cor": [122, 122, 122, 255],
-        "age": 50000
+        "fixed_age": 50000,
+        "damage": 4
     },
     "plasma": {
         "cor": [255, 0, 255, 255],
-        "age": 5
+        "fixed_age": 5,
+        "damage": 50
     },
     "lava": {
         "cor": [255, 50, 0, 255],
-        "age": 1000
+        "fixed_age": 1000,
+        "damage": 30
     },
     "lama": {
         "cor": [100, 40, 0, 255],
-        "age": 10000
+        "fixed_age": 10000,
+        "damage": 1
     },
     "metal": {
         "cor": [180, 180, 200, 255],
-        "age": 100000
+        "fixed_age": 100000,
+        "damage": 2
     },
     "madeira": {
         "cor": [150, 100, 50, 255],
-        "age": 10000
+        "fixed_age": 10000,
+        "damage": 1
     },
     "gelo": {
         "cor": [140, 180, 255, 255],
-        "age": 5000
+        "fixed_age": 5000,
+        "damage": 1
     },
     "None": {
         "cor": [255, 255, 255, 255],
-        "age": 0
+        "fixed_age": 0,
+        "damage": 0
     }
 }

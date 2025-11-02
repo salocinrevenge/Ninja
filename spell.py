@@ -92,6 +92,8 @@ class Spell:
     def multiply_all_properties(self, factor):
         number_violation = False
         for key in self.properties:
+            if key.startswith("fixed_"):
+                continue
             self.properties[key] *= factor
             if self.properties[key] > self.ceil_values:
                 self.properties[key] = self.ceil_values
@@ -102,6 +104,11 @@ class Spell:
         print("Multiplied spell properties:", self.properties)
 
     def add_property(self, property, value):
+        # se o nome comeca com fixed_, ignora
+        if property.startswith("fixed_"):
+            if property not in self.properties:
+                self.properties[property] = value
+            return
         if property not in self.properties:
             self.properties[property] = 0
         if (type(value) == int or type(value) == float):
