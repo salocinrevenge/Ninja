@@ -89,8 +89,12 @@ class Game_Manager():
                 chunk = self.loaded_chunks.get((center.x + dx, center.z + dz))
                 if chunk:
                     chunk.update(dt)
+        alive_entities = []
         for entity in self.entities:
             entity.update(dt)
+            if entity.alive:
+                alive_entities.append(entity)
+        self.entities = alive_entities
         self.camera.update(dt)
         new_projectiles = []
         for proj in self.projectiles:
@@ -178,5 +182,8 @@ class Game_Manager():
     def dispose(self):
         self.assets_loader.clear_all()
 
+    def add_spell(self, spell):
+        self.entities.append(spell)
+        
 
 

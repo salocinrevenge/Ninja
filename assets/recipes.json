@@ -9,6 +9,12 @@
         "expand": "matter",
         "stop": "refrigerate"
     },
+    "up": {
+        "expand": "line"
+    },
+    "down": {
+        "expand": "line"
+    },
     "terra":
     {
         "fogo": "lava",

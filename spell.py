@@ -1,15 +1,37 @@
 import pyray as rl
+import copy
 
 class Spell:
-    def __init__(self, caster, body = None, subbody = None, element = None, hand_position = None):
+    def __init__(self, caster, body = None, subbody = None, element = None, hand_position = None, properties = None):
         self.caster = caster
+        self.game = caster.game
         self.body = body
         self.subbody = subbody
         self.element = element
         self.hand_position = hand_position
-        self.properties = dict()
         self.ceil_values = 1024
-        self.add_native_atributes()
+        self.alive = True
+        self.pos = rl.Vector3(caster.pos.x, caster.pos.y+caster.casting_height, caster.pos.z)
+        if properties:
+            self.properties = properties
+        else:
+            self.properties = dict()
+            self.add_native_atributes()
+
+    def render(self):
+        # Render em 3D no mundo
+        pass
+
+
+    def copy(self):
+        return Spell(
+            caster=self.caster,
+            body=self.body,
+            subbody=self.subbody,
+            element=self.element,
+            hand_position=self.hand_position,
+            properties=copy.deepcopy(self.properties)
+        )
 
     def add_native_atributes(self):
         if self.hand_position:
@@ -23,6 +45,7 @@ class Spell:
                 self.add_property(key, value)
 
     def merge(self, other_spell):
+        print("properties before merge:", self.properties, other_spell.properties)
         if self.hand_position and other_spell.hand_position:
             if self.hand_position in self.caster.game.assets_loader.loaded_recipes:
                 if other_spell.hand_position in self.caster.game.assets_loader.loaded_recipes[self.hand_position]:
@@ -109,3 +132,55 @@ class Spell:
             return
 
         rl.draw_rectangle(x, y, SPELL_SIZE, SPELL_SIZE, rl.GRAY)        
+
+    def action(self, pilha_conjuracao):
+        if self.element:
+            self.cast()
+            print("Casting spell with element:", self.element, "and properties:", self.properties)
+            return
+        # nao ha elemento, logo eh uma posicao de mao
+        match self.hand_position:
+            case "double":
+                self.action_double(pilha_conjuracao)
+                return
+            case "invert":
+                self.action_invert(pilha_conjuracao)
+                return
+            case "unite":
+                self.action_unite(pilha_conjuracao)
+                return
+
+        # se nada ativou, mesclar com o ultimo feitico na pilha
+        pilha_conjuracao[-1].merge(self)
+
+        if pilha_conjuracao[-1].element:    # se o ultimo feitico agora eh um elemento, acaba a cadeia
+            return
+        new_spell = pilha_conjuracao.pop()  # senao, remove o ultimo feitico e ativa ele recursivamente
+        new_spell.action(pilha_conjuracao)
+
+
+    def action_double(self, pilha_conjuracao):
+        if len(pilha_conjuracao) ==0:
+            return
+        if pilha_conjuracao[-1].element:    # e se o ultimo feitico for um elemento
+            for _ in range(self.properties["multipling"] -1):   # duplica esse elemento
+                pilha_conjuracao.append(pilha_conjuracao[-1].copy())
+            return
+        if pilha_conjuracao[-1].hand_position: # ja se for uma posicao de mao
+            pilha_conjuracao[-1].multiply_all_properties(2) # dobra as propriedades
+            return
+
+    def action_invert(self, pilha_conjuracao):
+        if len(pilha_conjuracao) ==0:
+            return
+        pilha_conjuracao[-1].multiply_all_properties(-1)
+
+    def action_unite(self, pilha_conjuracao):
+        for spell in pilha_conjuracao:
+            print(f"Spell properties: {spell.properties}")
+        for _ in range(1,self.properties["uniting"]):
+            if len(pilha_conjuracao) < 2:
+                return
+            if pilha_conjuracao[-1].element and pilha_conjuracao[-2].element:
+                last_element = pilha_conjuracao.pop()
+                pilha_conjuracao[-1].merge(last_element)

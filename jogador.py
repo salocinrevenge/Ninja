@@ -34,12 +34,14 @@ class Jogador():
         self.running = False
         self.third_person = False
         self.eye_height = 1.75
+        self.casting_height = 1.5
         self.can_place_block = True
         self.can_break_block = True
         self.time = 0
         self.time_message = 0
         self.messages = []
         self.inventario = Inventario(jogador=self)
+        self.alive = True
 
         self.pressed_move_keys = {"W":False, "A":False, "S":False, "D":False}
 
@@ -144,7 +146,6 @@ class Jogador():
                         hp = self.inventario.get_selected_hand_position()
                         if hp is not None:
                             self.pilha_conjuracao.append(Spell(caster=self,hand_position=hp))
-                    print(f"Pilha de conjuracao: {self.pilha_conjuracao}")
                 elif self.modo == 'mobilidade' and self.can_place_block:
                     self.try_place_block()
                     self.can_place_block = False
@@ -171,38 +172,8 @@ class Jogador():
         if len(self.pilha_conjuracao) ==0:
             return
         spell = self.pilha_conjuracao.pop()
-        if spell.element:
-            self.cast_spell(spell)
-            return
-        if len(self.pilha_conjuracao) ==0:
-            return
-        if spell.hand_position == "double":
-            if self.pilha_conjuracao[-1].element:
-                for _ in range(spell.properties["multipling"] -1):
-                    self.pilha_conjuracao.append(copy.copy(self.pilha_conjuracao[-1]))
-                return
-            if self.pilha_conjuracao[-1].hand_position:
-                self.pilha_conjuracao[-1].multiply_all_properties(2)
-                return
-            return
-        if spell.hand_position == "invert":
-            self.pilha_conjuracao[-1].multiply_all_properties(-1)
-            return
-        if spell.hand_position == "unite":
-            if len(self.pilha_conjuracao) < 2:
-                return
-            if self.pilha_conjuracao[-1].element and self.pilha_conjuracao[-2].element:
-                self.pilha_conjuracao[-2].merge(self.pilha_conjuracao.pop())
-                return
-        if spell.hand_position and self.pilha_conjuracao[-1].element:
-            self.pilha_conjuracao[-1].merge(spell)
-            return
-        self.pilha_conjuracao[-1].merge(spell)
-        self.activate_spell()
 
-
-    def cast_spell(self, spell):
-        print(f"Conjurando {spell}!")
+        spell.action(self.pilha_conjuracao)
 
     def movement(self):
         if self.jumping and self.on_ground:
