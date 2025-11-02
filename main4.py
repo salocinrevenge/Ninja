@@ -10,18 +10,18 @@ class Motor():
         self.FPS_PADRAO = 60.0
         self.UPDATE_CAP = 1.0/self.FPS_PADRAO
 
-        rl.set_config_flags(rl.FLAG_WINDOW_RESIZABLE)
+        # rl.set_config_flags(rl.FLAG_WINDOW_RESIZABLE)
         scale_factor = 0.75
         self.normal_window_dimensions = (int(1920 * scale_factor), int(1080 * scale_factor))
         self.full_screen = True
-        rl.init_window(0, 0, b"Make Soul Dance")
-        rl.set_window_min_size(400, 300)
-        rl.toggle_fullscreen()
-        self.fullscreen_window_dimensions = (rl.get_monitor_width(0), rl.get_monitor_height(0))
+        rl.init_window(self.normal_window_dimensions[0], self.normal_window_dimensions[1], b"Make Soul Dance")
+        # rl.set_window_min_size(400, 300)
+        # rl.toggle_fullscreen()
+        # self.fullscreen_window_dimensions = (rl.get_monitor_width(0), rl.get_monitor_height(0))
         rl.set_target_fps(60)
         rl.disable_cursor()
 
-        self.fullscreen_toggle()  # Start in windowed mode for debug
+        # self.fullscreen_toggle()  # Start in windowed mode for debug
 
         self.game = Game_Manager(self)
 
@@ -78,14 +78,20 @@ class Motor():
         self.dispose()
       
     def update(self, dt): # metodo chamado a cada frame
+        return
         self.game.update(dt)
 
     def render(self): # metodo chamado a cada frame
-
+        rl.begin_drawing()
+        rl.clear_background(rl.Color(120, 255, 255, 255))
+        rl.draw_rectangle_gradient_v(0, 0, rl.get_screen_width(), rl.get_screen_height(), rl.Color(255, 255, 255, 0), rl.Color(255, 255, 255, 255))
+        rl.end_drawing()
+        return
         # Renderizar o mapa
         self.game.render()
 
     def fullscreen_toggle(self):
+        return
         if self.full_screen:
             rl.toggle_fullscreen()
             rl.set_window_size(self.normal_window_dimensions[0], self.normal_window_dimensions[1])
@@ -101,3 +107,7 @@ class Motor():
 
     def dispose(self):      # metodo chamado quando o jogo fecha
         self.game.dispose()
+
+if __name__ == "__main__":
+    motor = Motor()
+    asyncio.run(motor.run())

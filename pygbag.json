@@ -1,0 +1,3 @@
+{
+  "exclude": ["pypyvenv", "venv", "__pycache__"]
+}
