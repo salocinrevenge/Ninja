@@ -12,6 +12,7 @@ class Spell:
         self.ceil_values = 1024
         self.alive = True
         self.pos = rl.Vector3(caster.pos.x, caster.pos.y+caster.casting_height, caster.pos.z)
+        self.vel = rl.Vector3(0,0,0)
         if properties:
             self.properties = properties
         else:
@@ -20,8 +21,21 @@ class Spell:
 
     def render(self):
         # Render em 3D no mundo
+        # Get color from properties, default to white if not present
+        color = rl.Color(*self.game.assets_loader.elements_properities.get(self.element, 'None')["cor"],)
+        rl.draw_sphere(self.pos, 0.5, color)
         pass
 
+    def update(self, dt):
+        # Atualiza a posiçao do feitico no mundo
+        self.pos = rl.Vector3(
+            self.pos.x + self.vel.x * dt,
+            self.pos.y + self.vel.y * dt,
+            self.pos.z + self.vel.z * dt
+        )
+        # Verifica colisao com o mundo ou entidades
+        # Se colidir, aplicar efeitos e definir self.alive = False
+        pass
 
     def copy(self):
         return Spell(
@@ -133,6 +147,11 @@ class Spell:
 
         rl.draw_rectangle(x, y, SPELL_SIZE, SPELL_SIZE, rl.GRAY)        
 
+    def cast(self):
+        self.vel = rl.vector3_normalize(self.caster.target_dir)
+        self.vel = rl.vector3_scale(self.vel, self.properties.get("velocity", 0))
+        self.caster.game.add_spell(self)
+
     def action(self, pilha_conjuracao):
         if self.element:
             self.cast()
@@ -167,7 +186,7 @@ class Spell:
                 pilha_conjuracao.append(pilha_conjuracao[-1].copy())
             return
         if pilha_conjuracao[-1].hand_position: # ja se for uma posicao de mao
-            pilha_conjuracao[-1].multiply_all_properties(2) # dobra as propriedades
+            pilha_conjuracao[-1].multiply_all_properties(self.properties["multipling"]) # dobra as propriedades
             return
 
     def action_invert(self, pilha_conjuracao):

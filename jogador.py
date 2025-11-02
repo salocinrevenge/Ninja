@@ -42,6 +42,7 @@ class Jogador():
         self.messages = []
         self.inventario = Inventario(jogador=self)
         self.alive = True
+        self.target_dir = None
 
         self.pressed_move_keys = {"W":False, "A":False, "S":False, "D":False}
 
