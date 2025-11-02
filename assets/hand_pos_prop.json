@@ -31,6 +31,11 @@
     },
     "matter": {
         "body": 1
+    },
+    "refrigerate":
+    {
+        "temperature": -100
     }
+
     
 }

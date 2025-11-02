@@ -6,7 +6,8 @@
         "invert": "counter-spin"
     },
     "condense": {
-        "expand": "matter"
+        "expand": "matter",
+        "stop": "refrigerate"
     },
     "terra":
     {
@@ -59,6 +60,10 @@
     "cura":
     {
         "invert": "veneno"
+    },
+    "agua":
+    {
+        "refrigerate": "gelo"
     }
     
 }

@@ -99,7 +99,7 @@ class Jogador():
                 local_z = int(bz - chunk.z)
                 if chunk.get_block(local_x, local_y, local_z) is None and not check_colision_point(self.pos, self.dims, Vector3(bx, by, bz), Vector3(1,1,1)):
                     active_faces = [True, True, True, True, True, True]
-                    new_block = Block(chunk, self.game.assets_loader, "grass.png", rl.Vector3(bx, by, bz), active_faces=active_faces)
+                    new_block = Block(chunk, self.game.assets_loader, "dirt.png", rl.Vector3(bx, by, bz), active_faces=active_faces)
                     ok = chunk.place_block(local_x, local_y, local_z, new_block)
                     if ok is not None:
                         self.messages.append((ok, 120))
@@ -153,6 +153,8 @@ class Jogador():
             case 'LEFT_MOUSE_DOWN':
                 if self.modo == 'chakra':
                     self.activate_spell()
+                    if len(self.pilha_conjuracao)>0:
+                        print(self.pilha_conjuracao[-1].properties)
                 elif self.modo == 'mobilidade' and self.can_break_block:
                     self.try_break_block()
                     self.can_break_block = False
