@@ -1,22 +1,41 @@
+# /// script
+# dependencies = [
+# "cffi",
+# "raylib"
+# ]
+# ///
+
+from motor import Motor
 import asyncio
-import pyray as r
+from assets_loader import Assets_Loader
+from block import Block
+from bullet import Bullet
+from camera import Camera
+from controler import Controler
+from enemy import Enemy
+from game_chunk import Game_Chunk
+from game_manager import Game_Manager
+from inventario import Inventario
+from item import Item
+from jogador import Jogador
+from spell import Spell
+from utils import *
 
-async def main():
-    r.init_window(400,300,"d");x=y=0
-    while not r.window_should_close():
-        x+=1;y+=1
-        if x>400:x=0
-        if y>300:y=0
-        r.begin_drawing()
-        r.clear_background(r.BLACK)
-        r.draw_rectangle_rounded(r.Rectangle(int(x), int(y), 40, 40), 0.1, 10, r.RED)
-        # r.draw_rectangle_rounded_lines_ex(r.Rectangle(int(x), int(y), 40, 40), 0.1, 10, 2, r.RED) # Changing to this line causes error in pygbag
 
-        r.end_drawing()
-        await asyncio.sleep(0)
-    r.close_window()
+if __name__ == "__main__":
+    motor = Motor()
+    asyncio.run(motor.run())
 
-asyncio.run(main())
+    # Set-ExecutionPolicy RemoteSigned -Scope Process
+    # .\pypyvenv\Scripts\activate
+    # python main.py
 
-# compile with:
-# python -m pygbag --template noctx.tmpl --PYBUILD 3.12 --ume_block 0 --git .
+    # .\venv_old\Scripts\activate
+    # python old/coracao.py
+
+
+
+
+    # python -m pygbag --template noctx.tmpl --PYBUILD 3.12 --ume_block 0 .
+    # pygbag --ume_block 0 --template noctx.tmpl .
+    # pygbag --PYBUILD 3.12 --ume_block 0 --template noctx.tmpl --git .
