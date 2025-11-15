@@ -2,6 +2,7 @@ import time
 from game_manager import Game_Manager
 import pyray as rl
 import asyncio
+import platform
 
 class Motor():
 
@@ -13,15 +14,17 @@ class Motor():
         rl.set_config_flags(rl.FLAG_WINDOW_RESIZABLE)
         scale_factor = 0.75
         self.normal_window_dimensions = (int(1920 * scale_factor), int(1080 * scale_factor))
+        self.fullscreen_window_dimensions = (rl.get_monitor_width(0), rl.get_monitor_height(0))
+        print("Fullscreen dimensions: ", self.fullscreen_window_dimensions)
         self.full_screen = True
         rl.init_window(self.normal_window_dimensions[0], self.normal_window_dimensions[1], b"Make Soul Dance")
-        # rl.set_window_min_size(400, 300)
+        rl.set_window_min_size(400, 300)
         # rl.toggle_fullscreen()
-        self.fullscreen_window_dimensions = (rl.get_monitor_width(0), rl.get_monitor_height(0))
         rl.set_target_fps(60)
-        rl.disable_cursor()
+        if platform.system() != "Emscripten":
+            rl.disable_cursor()
 
-        # self.fullscreen_toggle()  # Start in windowed mode for debug
+        self.fullscreen_toggle()  # Start in windowed mode for debug
 
         self.game = Game_Manager(self)
 

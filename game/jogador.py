@@ -25,7 +25,7 @@ class Jogador():
         self.time_invulnerability = 100
         self.lives = 5
         self.f1_active = False
-        self.f3_active = False
+        self.f3_active = True
         self.yaw = 0
         self.render_distance = 2
         self.chunck_coord = (int(math.floor(self.pos.x / 16)) * 16, int(math.floor(self.pos.z / 16)) * 16)
@@ -325,7 +325,8 @@ class Jogador():
 
         if self.f3_active:
             text = f"Position:\nX: {self.pos.x}\nY: {self.pos.y}\nZ: {self.pos.z} \
-                \nLooking at:\nX: {self.game.camera.camera.target.x}\nY: {self.game.camera.camera.target.y}\nZ: {self.game.camera.camera.target.z}\n"
+                \nLooking at:\nX: {self.game.camera.camera.target.x}\nY: {self.game.camera.camera.target.y}\nZ: {self.game.camera.camera.target.z}\n \
+                \n Camera Pitch: {round(self.game.camera.camera_pitch, 2)}\nCamera Yaw: {round(self.game.camera.camera_yaw, 2)}\n Igualdade: {self.game.camera.mouse_delta[0], self.game.camera.mouse_delta[1]}\n"
             rl.draw_text(text, 10, 100, 20, (50,50,50,255))
 
             # mostra o FPS no canto superior direito

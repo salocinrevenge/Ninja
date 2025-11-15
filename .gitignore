@@ -4,3 +4,4 @@ venv_old/
 pypyvenv/
 *__pycache__/
 *build/*
+game/build/

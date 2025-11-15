@@ -15,9 +15,13 @@ class Camera():
 
     def update(self,dt):
         # --- Alternar visão ---
+
         
         # --- Movimento da câmera ---
         mouse_delta = rl.get_mouse_delta()
+        self.mouse_delta = (mouse_delta.x, mouse_delta.y)
+        if math.isnan(mouse_delta.x) or math.isnan(mouse_delta.y):
+            mouse_delta = rl.Vector2(0.0, 0.0)
         self.camera_yaw -= mouse_delta.x * 0.003
         self.camera_pitch -= mouse_delta.y * 0.003
         self.camera_pitch = max(-1.570775, min(1.570775, self.camera_pitch)) #1.2 original

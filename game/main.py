@@ -27,14 +27,11 @@ if __name__ == "__main__":
     asyncio.run(motor.run())
 
     # Set-ExecutionPolicy RemoteSigned -Scope Process
-    # .\pypyvenv\Scripts\activate
+    # .venv\Scripts\activate
     # python main.py
 
     # .\venv_old\Scripts\activate
     # python old/coracao.py
-
-
-
 
     # python -m pygbag --template noctx.tmpl --PYBUILD 3.12 --ume_block 0 .
     # pygbag --ume_block 0 --template noctx.tmpl .
