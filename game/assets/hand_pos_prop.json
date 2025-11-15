@@ -1,0 +1,63 @@
+{
+    "up": {
+        "vertical": 1
+    },
+    "down": {
+        "vertical": -1
+    },
+    "move": {
+        "velocity": 1
+    },
+    "stop": {
+        "velocity": 0,
+        "exo": 0,
+        "temperature": -10
+    },
+    "expand": {
+        "exo": 1,
+        "temperature": -1
+    },
+    "condense": {
+        "exo": -1,
+        "temperature": 1
+    },
+    "double": {
+        "multipling": 2
+    },
+    "unite": {
+        "uniting": 2
+        
+    },
+    "divide": {
+    },
+    "invert": {
+        "multipling": -1
+    },
+    "matter": {
+        "mass": 1
+    },
+    "refrigerate":
+    {
+        "temperature": -100
+    },
+    "line":
+    {
+        "shape": "line",
+        "size": 2
+    },
+    "plane":
+    {
+        "shape": "plane",
+        "size": 2,
+        "size2": 2
+    },
+    "volume":
+    {
+        "shape": "volume",
+        "size": 2,
+        "size2": 2,
+        "size3": 2
+    }
+
+    
+}
