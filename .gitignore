@@ -1,4 +1,6 @@
 venv/
+.venv/
 venv_old/
 pypyvenv/
-__pycache__/
+*__pycache__/
+*build/
