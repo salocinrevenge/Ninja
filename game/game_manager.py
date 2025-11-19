@@ -9,6 +9,7 @@ from block import Block
 import random
 import math
 import pyray as rl
+from utils import load_sky, draw_skybox
 
 class Game_Manager():
     def __init__(self, motor):
@@ -17,7 +18,13 @@ class Game_Manager():
         self.jogador = Jogador(self)
         self.max_height = 16
         self.max_height = 256
+        self.render_distance_skybox = 10000.
+        try:
+            rl.rl_set_clip_planes(0.1, self.render_distance_skybox)
+        except:
+            self.render_distance_skybox = 1000.
         self.create_map()
+        self.sky_tex, self.sky_src = load_sky()
         self.camera = Camera(self, self.jogador)
         self.entities.append(self.jogador)
         self.controls = Controler()
@@ -40,7 +47,7 @@ class Game_Manager():
 
         rl.begin_mode_3d(self.camera.camera)
         # self.draw_grid(20, 1.0)
-
+        draw_skybox(self.camera.camera.position, self.sky_tex, self.sky_src, self.render_distance_skybox)
         # Renderizar apenas o chunk central e seus 8 vizinhos
         for center in self.center_chunks:
             offsets = [(0, 0), (-16, 0), (16, 0), (0, -16), (0, 16),

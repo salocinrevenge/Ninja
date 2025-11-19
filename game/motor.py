@@ -18,6 +18,7 @@ class Motor():
         print("Fullscreen dimensions: ", self.fullscreen_window_dimensions)
         self.full_screen = True
         rl.init_window(self.normal_window_dimensions[0], self.normal_window_dimensions[1], b"Make Soul Dance")
+        rl.rl_disable_backface_culling()
         rl.set_window_min_size(400, 300)
         # rl.toggle_fullscreen()
         rl.set_target_fps(60)
