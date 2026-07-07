@@ -200,6 +200,10 @@ class Jogador():
         spell.action(self.pilha_conjuracao)
 
     def movement(self):
+        # Se o chunk onde o jogador está não estiver carregado, congela a física
+        if self.chunck_coord not in self.game.loaded_chunks:
+            self.vel.y = 0
+            return
         if self.jumping and self.on_ground:
             self.vel = rl.vector3_add(self.vel, Vector3(0, self.forca_pulo, 0)) 
             self.on_ground = False

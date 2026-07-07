@@ -11,6 +11,7 @@ import math
 import pyray as rl
 from utils import load_sky, draw_skybox
 from chunk_generator import ChunkGenerator
+import time
 
 class DummyCenter:
     def __init__(self, x, z):
@@ -164,8 +165,25 @@ class Game_Manager():
         self.center_chunks = []
         self.loaded_chunks = dict()
 
-        # Apenas definimos o centro inicial, o que vai acionar o carregamento via Thread.
+        # Aciona o pedido de carregamento na Thread secundária
         self.update_chunk((None, None), self.jogador.chunck_coord)
+        
+        # --- BLOQUEIO DE CARREGAMENTO INICIAL ---
+        # Fica em loop até o chunk exato do jogador existir no dicionário
+        print("Gerando mundo...")
+        while self.jogador.chunck_coord not in self.loaded_chunks:
+            ready_chunks = self.chunk_generator.get_ready_chunks()
+            
+            for coord, chunk_data in ready_chunks:
+                self.loaded_chunks[coord] = Game_Chunk(self, coord[0], coord[1], chunk_data, self.max_height)
+                if coord in self.requested_chunks:
+                    self.requested_chunks.remove(coord)
+                    
+            # Pausa de 10 milissegundos para não sobrecarregar a CPU enquanto espera
+            time.sleep(0.01) 
+            
+        print("Mundo gerado! Iniciando física...")
+        # ----------------------------------------
         
         self.entities = []
         self.projectiles = []
