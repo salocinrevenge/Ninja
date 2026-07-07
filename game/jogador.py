@@ -128,7 +128,6 @@ class Jogador():
                 # Se o bloco alvo é Ar (ID 0) e o jogador não está colidindo
                 if chunk.get_block_global(bx, by, bz) == 0 and not check_colision_point(self.pos, self.dims, Vector3(bx, by, bz), Vector3(1,1,1)):
                     chunk.place_block_local(local_x, local_y, local_z, 1) # 1 = Bloco Genérico
-                    self.messages.append(("Bloco Colocado", 120))
 
     def try_break_block(self):
         block_pos = self.game.camera.get_block_looked_at()

@@ -1,22 +1,7 @@
 import pyray as rl
 import ctypes
 
-# Definimos as direções das faces para facilitar a geração da malha
-FACES = [
-    # Normal,     Vértices (x, y, z) em coordenadas locais
-    # Topo (y+1)
-    ((0, 1, 0),  [(0,1,0), (0,1,1), (1,1,1), (1,1,0)]),
-    # Base (y-1)
-    ((0, -1, 0), [(0,0,1), (0,0,0), (1,0,0), (1,0,1)]),
-    # Direita (x+1)
-    ((1, 0, 0),  [(1,0,1), (1,0,0), (1,1,0), (1,1,1)]),
-    # Esquerda (x-1)
-    ((-1, 0, 0), [(0,0,0), (0,0,1), (0,1,1), (0,1,0)]),
-    # Frente (z+1)
-    ((0, 0, 1),  [(0,0,1), (1,0,1), (1,1,1), (0,1,1)]),
-    # Trás (z-1)
-    ((0, 0, -1), [(1,0,0), (0,0,0), (0,1,0), (1,1,0)])
-]
+
 
 class SubChunk:
     def __init__(self, parent_chunk, local_y_index):
@@ -31,6 +16,52 @@ class SubChunk:
         
         self.model = None
         self.is_dirty = True # Indica se a malha precisa ser refeita
+
+    # Definimos as direções das faces para facilitar a geração da malha
+    FACES = [
+        # Normal,     Vértices (x, y, z) em coordenadas locais
+        # Topo (y+1)
+        ((0, 1, 0),  [(0,1,0), (0,1,1), (1,1,1), (1,1,0)]),
+        # Base (y-1)
+        ((0, -1, 0), [(0,0,1), (0,0,0), (1,0,0), (1,0,1)]),
+        # Direita (x+1)
+        ((1, 0, 0),  [(1,0,1), (1,0,0), (1,1,0), (1,1,1)]),
+        # Esquerda (x-1)
+        ((-1, 0, 0), [(0,0,0), (0,0,1), (0,1,1), (0,1,0)]),
+        # Frente (z+1)
+        ((0, 0, 1),  [(0,0,1), (1,0,1), (1,1,1), (0,1,1)]),
+        # Trás (z-1)
+        ((0, 0, -1), [(1,0,0), (0,0,0), (0,1,0), (1,1,0)])
+    ]
+
+    def get_texture_uv(self, block_id, face_idx):
+        # Quantidade de texturas por linha/coluna no seu arquivo de atlas
+        # Se o seu atlas tem 16 texturas de largura, o tamanho é 16.0
+        ATLAS_COLS = 16.0
+        TILE_SIZE = 1.0 / ATLAS_COLS
+        
+        # Mapeamento (Coluna x, Linha y) no Atlas
+        # face_idx: 0=Topo, 1=Base, 2=Dir, 3=Esq, 4=Frente, 5=Trás
+        if block_id == 1: # Grama
+            if face_idx == 0:   
+                tx, ty = 0, 0 # Posição da textura do Topo da Grama no atlas
+            elif face_idx == 1: 
+                tx, ty = 2, 0 # Posição da Terra (Base)
+            else:               
+                tx, ty = 1, 0 # Lados da Grama
+        elif block_id == 2: # Terra
+            tx, ty = 2, 0
+        else:
+            tx, ty = 0, 0 # Textura padrão para IDs desconhecidos
+
+        # Calcula os pontos (entre 0.0 e 1.0) baseados no tamanho do tile
+        u0 = tx * TILE_SIZE
+        v0 = ty * TILE_SIZE
+        u1 = u0 + TILE_SIZE
+        v1 = v0 + TILE_SIZE
+
+        # Retorna os UVs para os 4 vértices da face
+        return [(u0, v0), (u1, v0), (u1, v1), (u0, v1)]
 
     def get_block(self, x, y, z):
         if 0 <= x < 16 and 0 <= y < 16 and 0 <= z < 16:
@@ -57,7 +88,7 @@ class SubChunk:
                         continue # Ar não desenha
 
                     # Checar vizinhos para cada face
-                    for face_idx, (normal, face_verts) in enumerate(FACES):
+                    for face_idx, (normal, face_verts) in enumerate(self.FACES):
                         nx, ny, nz = x + normal[0], y + normal[1], z + normal[2]
                         
                         # Verifica se o vizinho é transparente/ar
@@ -68,9 +99,9 @@ class SubChunk:
                         )
 
                         if neighbor_id == 0: # Adiciona a face apenas se tocar no ar
-                            # Aqui você calcularia o UV baseado no block_id no Texture Atlas
-                            # Valores de exemplo (mapeando a textura inteira por enquanto):
-                            uvs = [(0,0), (1,0), (1,1), (0,1)]
+                            
+                            # Busca as coordenadas UV corretas do Atlas
+                            uvs = self.get_texture_uv(block_id, face_idx)
                             
                             for i, v in enumerate(face_verts):
                                 vertices.extend([v[0] + x, v[1] + y, v[2] + z])
@@ -125,15 +156,19 @@ class SubChunk:
         # Cria o modelo
         self.model = rl.load_model_from_mesh(mesh)
         
-        # 4. Solução do "Tudo Branco"
-        # Usando o seu assets_loader para buscar a textura (Adapte o nome "grass" caso necessário)
+        # 4. Solução do "Tudo Branco/Preto" usando função nativa da Raylib
         try:
-            # No código anterior do Block você passava "grass", então vamos puxar ela:
-            textura = self.game.assets_loader.get_texture("grass")
-            # Vinculamos ao material gerado pelo modelo:
-            self.model.materials[0].maps[rl.MATERIAL_MAP_ALBEDO].texture = textura
+            # Pegue o seu atlas do gerenciador de assets
+            textura = self.game.assets_loader.get_block_texture("atlas")
+            
+            # Força a associação da textura ao material usando ponteiros CFFI
+            rl.set_material_texture(
+                rl.ffi.addressof(self.model.materials[0]), 
+                rl.MATERIAL_MAP_ALBEDO, 
+                textura
+            )
         except Exception as e:
-            print("Não foi possível puxar a textura:", e)
+            print("Não foi possível puxar a textura do atlas:", e)
 
     def render(self):
         if self.model:
