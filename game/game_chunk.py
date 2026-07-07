@@ -176,20 +176,20 @@ class SubChunk:
             rl.draw_model(self.model, position, 1.0, rl.WHITE)
 
 class Game_Chunk:
-    def __init__(self, game, x, z, max_height=256):
+    def __init__(self, game, x, z, chunk_data, max_height=256):
         self.game = game
         self.x = x
         self.z = z
         self.max_height = max_height
         self.num_subchunks = max_height // 16
-        self.subchunks = [SubChunk(self, i) for i in range(self.num_subchunks)]
-
-        # Preenchimento inicial de teste (baseado no seu código original)
-        for lx in range(16):
-            for lz in range(16):
-                for ly in range(max_height):
-                    if ly < 2:
-                        self.place_block_local(lx, ly, lz, 1) # ID 1 = Grama
+        
+        # Cria os subchunks já repassando o array pré-processado
+        self.subchunks = []
+        for i in range(self.num_subchunks):
+            sub = SubChunk(self, i)
+            # Substitui a lista de blocos vazia pelos dados do multiprocessing
+            sub.blocks = chunk_data[i] 
+            self.subchunks.append(sub)
 
     def place_block_local(self, lx, ly, lz, block_id):
         if ly < 0 or ly >= self.max_height: return
