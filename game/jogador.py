@@ -109,18 +109,41 @@ class Jogador():
                         self.messages.append((ok, 120))
 
 
-    def try_break_block(self):
+    def try_place_block(self):
         block_pos = self.game.camera.get_block_looked_at()
         if block_pos:
             bx, by, bz, face = block_pos
-            chunk = self.game.loaded_chunks.get((int(math.floor(bx / 16)) * 16, int(math.floor(bz / 16)) * 16))
+            by += {"top": 1, "bottom": -1}.get(face, 0)
+            bz += {"north": 1, "south": -1}.get(face, 0)
+            bx += {"east": 1, "west": -1}.get(face, 0)
+            
+            chunk_coord = (int(math.floor(bx / 16)) * 16, int(math.floor(bz / 16)) * 16)
+            chunk = self.game.loaded_chunks.get(chunk_coord)
+            
             if chunk:
                 local_x = int(bx - chunk.x)
                 local_y = int(by)
                 local_z = int(bz - chunk.z)
-                bloco = chunk.get_block(local_x, local_y, local_z)
-                if bloco is not None:
-                    chunk.remove_block(local_x, local_y, local_z)
+                
+                # Se o bloco alvo é Ar (ID 0) e o jogador não está colidindo
+                if chunk.get_block_global(bx, by, bz) == 0 and not check_colision_point(self.pos, self.dims, Vector3(bx, by, bz), Vector3(1,1,1)):
+                    chunk.place_block_local(local_x, local_y, local_z, 1) # 1 = Bloco Genérico
+                    self.messages.append(("Bloco Colocado", 120))
+
+    def try_break_block(self):
+        block_pos = self.game.camera.get_block_looked_at()
+        if block_pos:
+            bx, by, bz, face = block_pos
+            chunk_coord = (int(math.floor(bx / 16)) * 16, int(math.floor(bz / 16)) * 16)
+            chunk = self.game.loaded_chunks.get(chunk_coord)
+            
+            if chunk:
+                local_x = int(bx - chunk.x)
+                local_y = int(by)
+                local_z = int(bz - chunk.z)
+                
+                if chunk.get_block_global(bx, by, bz) > 0:
+                    chunk.place_block_local(local_x, local_y, local_z, 0) # 0 = Ar
 
     def input(self,event):
         self.inventario.input(event)

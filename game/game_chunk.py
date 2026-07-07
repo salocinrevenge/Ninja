@@ -1,111 +1,198 @@
-from block import Block
 import pyray as rl
+import ctypes
 
-class Game_Chunk():
-    def __init__(self,game,x,z,max_height):
-        assert x%16 ==0, "x não é múltiplo de 16"
-        assert z%16 ==0, "z não é múltiplo de 16"
+# Definimos as direções das faces para facilitar a geração da malha
+FACES = [
+    # Normal,     Vértices (x, y, z) em coordenadas locais
+    # Topo (y+1)
+    ((0, 1, 0),  [(0,1,0), (0,1,1), (1,1,1), (1,1,0)]),
+    # Base (y-1)
+    ((0, -1, 0), [(0,0,1), (0,0,0), (1,0,0), (1,0,1)]),
+    # Direita (x+1)
+    ((1, 0, 0),  [(1,0,1), (1,0,0), (1,1,0), (1,1,1)]),
+    # Esquerda (x-1)
+    ((-1, 0, 0), [(0,0,0), (0,0,1), (0,1,1), (0,1,0)]),
+    # Frente (z+1)
+    ((0, 0, 1),  [(0,0,1), (1,0,1), (1,1,1), (0,1,1)]),
+    # Trás (z-1)
+    ((0, 0, -1), [(1,0,0), (0,0,0), (0,1,0), (1,1,0)])
+]
+
+class SubChunk:
+    def __init__(self, parent_chunk, local_y_index):
+        self.parent = parent_chunk
+        self.game = parent_chunk.game
+        self.local_y_index = local_y_index # Índice vertical (ex: 0 = y:0 a 15, 1 = y:16 a 31)
+        self.world_y_offset = local_y_index * 16
+        
+        # Array 3D de IDs de blocos (0 = Ar, 1 = Grama, 2 = Terra...)
+        # Usar listas 1D simulando 3D é ainda mais rápido na CPU: index = x + z*16 + y*256
+        self.blocks = [0] * (16 * 16 * 16) 
+        
+        self.model = None
+        self.is_dirty = True # Indica se a malha precisa ser refeita
+
+    def get_block(self, x, y, z):
+        if 0 <= x < 16 and 0 <= y < 16 and 0 <= z < 16:
+            return self.blocks[x + z * 16 + y * 256]
+        return 0 # Ar se fora dos limites locais
+
+    def set_block(self, x, y, z, block_id):
+        if 0 <= x < 16 and 0 <= y < 16 and 0 <= z < 16:
+            self.blocks[x + z * 16 + y * 256] = block_id
+            self.is_dirty = True
+
+    def build_mesh(self):
+        vertices = []
+        texcoords = []
+        indices = []
+        index_count = 0
+
+        # Oclusão de Faces (Simple Meshing)
+        for y in range(16):
+            for z in range(16):
+                for x in range(16):
+                    block_id = self.get_block(x, y, z)
+                    if block_id == 0:
+                        continue # Ar não desenha
+
+                    # Checar vizinhos para cada face
+                    for face_idx, (normal, face_verts) in enumerate(FACES):
+                        nx, ny, nz = x + normal[0], y + normal[1], z + normal[2]
+                        
+                        # Verifica se o vizinho é transparente/ar
+                        neighbor_id = self.parent.get_block_global(
+                            self.parent.x + nx, 
+                            self.world_y_offset + ny, 
+                            self.parent.z + nz
+                        )
+
+                        if neighbor_id == 0: # Adiciona a face apenas se tocar no ar
+                            # Aqui você calcularia o UV baseado no block_id no Texture Atlas
+                            # Valores de exemplo (mapeando a textura inteira por enquanto):
+                            uvs = [(0,0), (1,0), (1,1), (0,1)]
+                            
+                            for i, v in enumerate(face_verts):
+                                vertices.extend([v[0] + x, v[1] + y, v[2] + z])
+                                texcoords.extend([uvs[i][0], uvs[i][1]])
+
+                            indices.extend([index_count, index_count+1, index_count+2, 
+                                            index_count, index_count+2, index_count+3])
+                            index_count += 4
+
+        self.upload_mesh(vertices, texcoords, indices)
+        self.is_dirty = False
+
+    def upload_mesh(self, vertices, texcoords, indices):
+        # 1. Limpeza Segura do Modelo Antigo
+        if self.model is not None:
+            # Raylib armadilha: O UnloadModel apaga a textura vinculada da placa de vídeo!
+            # Para não apagar a sua textura global do assets_loader, removemos a referência antes:
+            self.model.materials[0].maps[rl.MATERIAL_MAP_ALBEDO].texture = rl.Texture(0, 1, 1, 1, 1)
+            
+            rl.unload_model(self.model)
+            self.model = None
+
+        if not vertices:
+            return
+
+        mesh = rl.Mesh()
+        mesh.vertexCount = len(vertices) // 3
+        mesh.triangleCount = len(indices) // 3
+
+        # 2. Alocação Nativa C (Impede o crash silencioso)
+        # Ao invés de criar a memória no Python, criamos na Raylib para ela poder gerenciar e limpar.
+        v_size = len(vertices) * rl.ffi.sizeof("float")
+        t_size = len(texcoords) * rl.ffi.sizeof("float")
+        i_size = len(indices) * rl.ffi.sizeof("unsigned short")
+
+        mesh.vertices = rl.ffi.cast("float *", rl.mem_alloc(v_size))
+        mesh.texcoords = rl.ffi.cast("float *", rl.mem_alloc(t_size))
+        mesh.indices = rl.ffi.cast("unsigned short *", rl.mem_alloc(i_size))
+
+        # 3. Copiando os dados do Python para a memória da Raylib
+        v_data = rl.ffi.new("float[]", vertices)
+        t_data = rl.ffi.new("float[]", texcoords)
+        i_data = rl.ffi.new("unsigned short[]", indices)
+
+        rl.ffi.memmove(mesh.vertices, v_data, v_size)
+        rl.ffi.memmove(mesh.texcoords, t_data, t_size)
+        rl.ffi.memmove(mesh.indices, i_data, i_size)
+
+        # Envia a malha para a Placa de Vídeo
+        rl.upload_mesh(rl.ffi.addressof(mesh), False)
+        
+        # Cria o modelo
+        self.model = rl.load_model_from_mesh(mesh)
+        
+        # 4. Solução do "Tudo Branco"
+        # Usando o seu assets_loader para buscar a textura (Adapte o nome "grass" caso necessário)
+        try:
+            # No código anterior do Block você passava "grass", então vamos puxar ela:
+            textura = self.game.assets_loader.get_texture("grass")
+            # Vinculamos ao material gerado pelo modelo:
+            self.model.materials[0].maps[rl.MATERIAL_MAP_ALBEDO].texture = textura
+        except Exception as e:
+            print("Não foi possível puxar a textura:", e)
+
+    def render(self):
+        if self.model:
+            position = rl.Vector3(self.parent.x, self.world_y_offset, self.parent.z)
+            rl.draw_model(self.model, position, 1.0, rl.WHITE)
+
+class Game_Chunk:
+    def __init__(self, game, x, z, max_height=256):
         self.game = game
         self.x = x
         self.z = z
-        self.limits = (16,max_height,16)
-        self.static_blocks = []
-        for x in range(self.limits[0]):
-            self.static_blocks.append([])
-            for y in range(self.limits[1]):
-                self.static_blocks[-1].append([])
-                for z in range(self.limits[2]):
-                    bloco = None
-                    if y < 2:
-                        active_faces = [True, True, True, True, True, True]
-                        bloco = Block(self, self.game.assets_loader, "grass", rl.Vector3(x+self.x,y,z+self.z), active_faces=active_faces)
-                        # bloco = None
-                    self.static_blocks[-1][-1].append(bloco)
-                    self.update_adjacent_faces(x,y,z)
+        self.max_height = max_height
+        self.num_subchunks = max_height // 16
+        self.subchunks = [SubChunk(self, i) for i in range(self.num_subchunks)]
 
-    def place_block(self, x, y, z, block):
-        if y < 0:
-            return
-        if y >= self.limits[1]:
-            return "Impossible to place block above chunk height of {}".format(self.limits[1])
-        self.static_blocks[x][y][z] = block
-        self.update_adjacent_faces(x, y, z)
+        # Preenchimento inicial de teste (baseado no seu código original)
+        for lx in range(16):
+            for lz in range(16):
+                for ly in range(max_height):
+                    if ly < 2:
+                        self.place_block_local(lx, ly, lz, 1) # ID 1 = Grama
 
-    def remove_block(self, x, y, z):
-        self.static_blocks[x][y][z] = None
-        self.update_adjacent_faces(x, y, z)
-
-    def update_adjacent_faces(self,x,y,z):
-        block = self.get_block(x,y,z)
-        # print("Atualizando faces adjacentes de bloco em",x,y,z)
-        # Frente (z+1)
-        neighbor = self.get_block(x,y,z+1)
-        if neighbor:
-            if block:
-                block.update_face(0,False)
-            neighbor.update_face(1,block is None) 
-        # Trás (z-1)
-        neighbor = self.get_block(x,y,z-1)
-        if neighbor:
-            if block:
-                block.update_face(1,False)
-            neighbor.update_face(0,block is None)
-        # Direita (x+1)
-        neighbor = self.get_block(x+1,y,z)
-        if neighbor:
-            if block:
-                block.update_face(2,False)
-            neighbor.update_face(3,block is None)
-        # Esquerda (x-1)
-        neighbor = self.get_block(x-1,y,z)
-        if neighbor:
-            if block:
-                block.update_face(3,False)
-            neighbor.update_face(2,block is None)
-        # Topo (y+1)
-        neighbor = self.get_block(x,y+1,z)
-        if neighbor:
-            if block:
-                block.update_face(4,False)
-            neighbor.update_face(5,block is None)
-        # Base (y-1)
-        neighbor = self.get_block(x,y-1,z)
-        if neighbor:
-            if block:
-                block.update_face(5,False)
-            neighbor.update_face(4,block is None)
-
-    def get_block(self,x,y,z):
-        get_from_other_chunk = False
-        if x < 0 or x >= len(self.static_blocks):
-            get_from_other_chunk = True
-        elif y < 0 or y >= len(self.static_blocks[x]):
-            return None
-        elif z < 0 or z >= len(self.static_blocks[x][y]):
-            get_from_other_chunk = True
-        if get_from_other_chunk:
-            global_x = x + self.x
-            global_y = y
-            global_z = z + self.z
-            chunk_x = (global_x // 16) * 16
-            chunk_z = (global_z // 16) * 16
-            neighbor_chunk = self.game.loaded_chunks.get((chunk_x, chunk_z))
-            if not neighbor_chunk:
-                return None
-            local_x = global_x - chunk_x
-            local_y = global_y
-            local_z = global_z - chunk_z
-            return neighbor_chunk.get_block(local_x, local_y, local_z)
-        else:
+    def place_block_local(self, lx, ly, lz, block_id):
+        if ly < 0 or ly >= self.max_height: return
+        sub_idx = ly // 16
+        local_y = ly % 16
+        self.subchunks[sub_idx].set_block(lx, local_y, lz, block_id)
         
-            return self.static_blocks[x][y][z]
+        # Se colocar um bloco na borda, marca o chunk vizinho como dirty para atualizar as faces
+        # (Lógica a ser adicionada na fase de Threads)
 
-    def render(self):
-        for x in range(self.limits[0]):
-            for y in range(self.limits[1]):
-                for z in range(self.limits[2]):
-                    if self.static_blocks[x][y][z]:
-                        self.static_blocks[x][y][z].render()
+    def get_block_global(self, gx, gy, gz):
+        """Busca o bloco lidando com coordenadas globais do mundo, atravessando chunks vizinhos se necessário."""
+        if gy < 0 or gy >= self.max_height: return 0
+        
+        if self.x <= gx < self.x + 16 and self.z <= gz < self.z + 16:
+            # Está dentro deste chunk
+            lx, lz = gx - self.x, gz - self.z
+            sub_idx = gy // 16
+            local_y = gy % 16
+            return self.subchunks[sub_idx].get_block(lx, local_y, lz)
+        else:
+            # Está em um chunk vizinho
+            chunk_x = (gx // 16) * 16
+            chunk_z = (gz // 16) * 16
+            neighbor = self.game.loaded_chunks.get((chunk_x, chunk_z))
+            if neighbor:
+                lx, lz = gx - chunk_x, gz - chunk_z
+                sub_idx = gy // 16
+                local_y = gy % 16
+                return neighbor.subchunks[sub_idx].get_block(lx, local_y, lz)
+            return 0 # Chunk não carregado
 
     def update(self, dt):
-        pass
+        # Reconstrói a malha de qualquer subchunk que foi alterado
+        for sub in self.subchunks:
+            if sub.is_dirty:
+                sub.build_mesh()
+
+    def render(self):
+        for sub in self.subchunks:
+            sub.render()
